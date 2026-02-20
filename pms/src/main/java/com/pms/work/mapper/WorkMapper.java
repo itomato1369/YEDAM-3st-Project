@@ -15,19 +15,21 @@ public interface WorkMapper {
 	// 소요시간 전체 조회 + 검색조건 추가 후 조회
 	List<WorkSelectDto> selectWorkEntries(WorkSelectDto workSelectDto);
 	
-	// 소요시간 수정을 위한 상세조회 단건조회 List안쓴다
-	WorkUpdateDto selectWorkEntriesByNo(WorkUpdateDto workUpdateDto);
-	
-	// 소요시간 등록 페이지의 내가 속한 프로젝트의 일감 조회
+	// 소요시간 등록 페이지 프로젝트의 일감 조회
 	List<WorkInsertDto> selectIssueInProject(WorkInsertDto workInsertDto);
-	
-	// 소요시간 등록 매개변수 타입이 WorkInsertDto  insert된 row 행의 개수
+	// 소요시간 등록 페이지 작업분류 조회
+	List<WorkInsertDto> selectWorkDetails(String workType);
+	// 소요시간 등록 기능 매개변수 타입이 WorkInsertDto  insert된 row 행의 개수
 	int insertWorkEntries(WorkInsertDto workInsertDto);
 	
-	// 소요시간 수정 
+	
+	// 소요시간 수정 페이지 수정을 위한 상세조회 단건조회 List안쓴다
+	WorkUpdateDto selectWorkEntriesByNo(WorkUpdateDto workUpdateDto);
+	// 소요시간 수정 기능
 	int updateWorkEntries(WorkUpdateDto workUpdateDto);
 	
 	
+	// 소요시간 보고서 조회
 	// 일감별 소요시간 보고서
 	List<WorkReportDto> selectJobReport(WorkReportDto workReportDto);
 	// 프로젝트별 소요시간 보고서

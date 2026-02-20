@@ -3,6 +3,7 @@
 <mapper namespace="com.pms.work.mapper.WorkMapper">
     <!-- 소요시간 전체 조회 + 조건 검색 기능 
       id는 mapper 인터페이스의 method명  -->
+      <!-- SELECT -->
 	<select id="selectWorkEntries" resultType="WorkSelectDto">
 		SELECT
 		 we.work_entries_no
@@ -12,28 +13,30 @@
 		 , we.work_content
 		 , we.job_no
 		 , j.title
+		 , j.user_id
 		 , j.manager_id
 		 , p.project_name
 		 , we.work_details_no
 		 , wd.work_type
 		FROM 
-		  work_entries we
-		JOIN 
+		  project p
+		LEFT JOIN 
 		  job j
 		ON 
-		  we.job_no = j.job_no
-		LEFT JOIN 
-		  work_details wd
+		  p.project_no = j.project_no
+		INNER JOIN 
+		  work_entries we
 		ON 
-		  we.work_details_no = wd.work_details_no
-		 JOIN
-		   project p
+		  j.job_no = we.job_no
+		 LEFT JOIN
+		   work_details wd
 		 ON
-		   p.project_no = j.project_no
+		   we.work_details_no = wd.work_details_no
 		<where>
-		  <if test="projectCode != null">
-		 AND p.project_code = #{projectCode}
-		  </if>
+         p.project_code = #{projectCode}
+		  <if test="userId != null">
+		 AND  j.user_id = #{userId}
+  		  </if>
 		  <if test="jobNo != null and jobNo != 0">
 		 AND we.job_no = #{jobNo}
 		  </if>
@@ -57,22 +60,31 @@
 		  we.work_entries_no DESC
 	</select>
 	
-	<!-- 소요시간 수정화면으로 갈 때 서버에서 만들어진 html을 보내기 위해 -->
-	<select id="selectWorkEntriesByNo" resultType="WorkUpdateDto">
+	<!-- INSERT -->
+	<!-- 소요시간 등록에서 사용할 일감 조회 -->
+	<select id="selectIssueInProject" resultType="WorkInsertDto">
 	    SELECT
-	      work_entries_no
-	      , job_no
-	      , workers
-	      , work_date
-	      , work_time
-	      , work_content
-	      , work_details_no
+	      j.job_no AS jobNo
+	      , j.title
+	      , j.manager_id AS managerId
+	      , p.project_code AS projectCode
 	    FROM
-	      work_entries
+	      job j
+	    JOIN
+	      project p
+	    ON
+	      j.project_no = p.project_no
 	    WHERE
-	      work_entries_no = #{workEntriesNo}
+	      p.project_code = #{projectCode}
 	</select>
-	
+	<!-- 소요시간 등록에서 사용할 작업분류 조회 -->
+	<select id="selectWorkDetails" resultType="workInsertDto">
+	    SELECT 
+	      work_details_no AS workDetailsNo
+	      , work_type AS workType
+	    FROM
+	      work_details
+	</select>
 	<!-- 소요시간 등록 INSERT 파라미터 타입이 WorkInsertDto 객체 하나다! -->
 	<insert id="insertWorkEntries" parameterType="WorkInsertDto">
 		INSERT INTO work_entries
@@ -97,7 +109,33 @@
 		)
 	</insert>
 	
-	<!-- 소요시간 수정 UPDATE 파라미터 타입이 WorkUpdateDto 객체 하나다!
+	<!-- UPDATE -->
+	<!-- 소요시간 수정화면 서버에서 만들어진 html을 보내기 위해 -->
+	<select id="selectWorkEntriesByNo" resultType="WorkUpdateDto">
+	    SELECT
+	      we. work_entries_no AS workEntriesNo
+	      , we.job_no AS jobNo
+	      , j.title
+	      , we.workers
+	      , we.work_date AS workDate
+	      , we.work_time AS workTime
+	      , we.work_content AS workContent
+	      , we.work_details_no AS workDetailsNo
+	      , wd.work_type AS workType
+	    FROM
+	      work_entries we
+	    LEFT JOIN
+	      job j
+	    ON
+	      we.job_no = j.job_no
+	    LEFT JOIN
+	      work_details wd
+	    ON
+	      we.work_details_no = wd.work_details_no
+	    WHERE
+	      we.work_entries_no = #{workEntriesNo}
+	</select>
+  <!-- 소요시간 수정 UPDATE 파라미터 타입이 WorkUpdateDto 객체 하나다!
 	추후에 권한 기능 넣음 -->
 	<update id="updateWorkEntries" parameterType="WorkUpdateDto">
 	    UPDATE work_entries
@@ -108,13 +146,13 @@
 	        , work_details_no = #{workDetailsNo}
 	    WHERE
 	          work_entries_no = #{workEntriesNo}
-	          AND workers = #{managerId}
 	</update>
 	
+	<!-- REPORT -->
 	<!-- 일감별 소요시간 보고서 -->
 	<select id="selectJobReport" resultType="WorkReportDto">
 	   SELECT
-            p.le 
+            p.le
           , p.project_name AS projectName
           , j.title AS title
           , j.manager_id AS managerId
@@ -126,26 +164,25 @@
           , get_working_days(j.start_date, j.end_date) * 8 AS estimatedTime
         FROM
             vw_project p
-        JOIN vw_member m 
+        JOIN (SELECT DISTINCT project_no, user_id FROM vw_member) m
             ON p.project_no = m.project_no
+            AND m.user_id = #{userId}
         JOIN job j 
-            ON p.project_no = j.project_no
+             ON p.project_no = j.project_no
         LEFT JOIN work_entries we 
             ON j.job_no = we.job_no
             <where>
-                m.user_id = #{userId}
+             AND p.project_code = #{projectCode}
                 <if test="jobNo != null and jobNo !=0">
                     AND j.job_no = #{jobNo}
-                </if>
-                <if test="projectCode != null">
-                    AND p.project_code = #{projectCode}
                 </if>
                 <if test="title != null and title != ''">
                     AND j.title LIKE '%' || #{title} || '%'
                 </if>
             </where>
         GROUP BY
-            p.le, p.project_name
+            p.le
+            , p.project_name
             , j.job_no, j.title
             , j.manager_id
             , j.start_date
@@ -153,46 +190,14 @@
         ORDER BY
             p.le, p.project_name
 	</select>
-	<!-- 프로젝트별 소요시간 보고서 -->
-	<select id="selectProjectReport" resultType="WorkReportDto">
-	  SELECT
-              LPAD(' ', (p.le - 1) * 4) || p.project_name AS projectName
-            , prj.start_date AS startDate
-            , prj.end_date AS endDate
-            , get_working_days(prj.start_date, prj.end_date) AS workDays
-            , NVL(SUM(we.work_time), 0) AS realWorkTime
-            , get_working_days(prj.start_date, prj.end_date) * 8 AS estimatedTime
-        FROM 
-            vw_project p
-        JOIN project prj 
-            ON p.project_no = prj.project_no
-        JOIN vw_member m 
-            ON p.project_no = m.project_no
-        LEFT JOIN job j 
-            ON p.project_no = j.project_no
-        LEFT JOIN work_entries we 
-            ON j.job_no = we.job_no
-            <where>
-                  m.user_id = #{userId}
-                  <if test="projectName != null and projectName != ''">
-                      AND p.project_name LIKE '%' || #{projectName} || '%'
-                  </if>
-            </where>
-        GROUP BY
-            p.le, p.project_name
-            , prj.start_date
-            , prj.end_date
-            , p.project_no
-        ORDER BY 
-            p.project_no
-	</select>
-	<!-- 사용자별 소요시간 보고서 -->
+
+	<!-- 사용자별 소요시간 보고서 
+	로그인한 유저가 해당 프로젝트 멤버인지 확인 (EXISTS로 중복 방지) *-->
 	<select id="selectUserReport" resultType="WorkReportDto">
 	  SELECT
-              m.user_id AS userId
+              j.manager_id AS managerId
             , p.project_name AS projectName
             , p.le 
-            , j.manager_id AS managerId
             , j.title AS title
             , j.start_date AS startDate
             , j.end_date AS endDate
@@ -201,29 +206,30 @@
             , get_working_days(j.start_date, j.end_date) * 8 AS estimatedTime
         FROM 
             vw_project p
-        JOIN vw_member m 
-            ON p.project_no = m.project_no
         JOIN job j 
             ON p.project_no = j.project_no
         LEFT JOIN work_entries we 
             ON j.job_no = we.job_no
         LEFT JOIN work_details wd
-            ON we.work_details_no = wd.work_details_no
-            <where>
-                 m.user_id = #{userId}
-                 <if test="projectCode != null">
-                     AND p.project_code = #{projectCode}
-                 </if>
+            ON we.work_details_no = wd.work_details_no          
+        WHERE EXISTS (
+        			SELECT
+        					  1
+        		    FROM
+        		      vw_member vw
+        		    WHERE  
+        		      vw.project_no = p.project_no
+        		      AND vw.user_id = #{userId}
+        						)
+        AND p.project_code = #{projectCode}
                  <if test="workType != null and workType != ''">
                      AND wd.work_type = #{workType}
                  </if>
                  <if test="workDate != null">
                      AND we.work_date = #{workDate}
-                 </if>       
-            </where>        
+                 </if>        
         GROUP BY 
-            m.user_id
-            , p.project_name
+              p.project_name
             , p.le
             , j.manager_id
             , j.title
@@ -232,32 +238,40 @@
         ORDER BY 
             p.le ASC, p.project_name ASC
 	</select>
-	<!-- 주별 소요시간 보고서 -->
+	
+	<!-- 주별 소요시간 보고서
+	오라클에서 'IW' (ISO Week) 기준은 한 주가 월요일에 시작해서 일요일에 끝납니다.
+    TRUNC(we.work_date, 'IW'): 해당 주차의 월요일 00:00:00
+    + 6: 월요일로부터 6일이 지나면 일요일 -->
 	<select id="selectWeekReport" resultType="WorkReportDto">
 	  SELECT
               LPAD(' ', (p.le - 1) * 4) || p.project_name AS projectName
             , wd.work_type AS workType
-            , MIN(TRUNC(we.work_date, 'IW')) AS startDate  , MIN(TRUNC(we.work_date, 'IW')) + 6 AS endDate
+            , MIN(TRUNC(we.work_date, 'IW')) AS startDate 
+            , MIN(TRUNC(we.work_date, 'IW')) + 6 AS endDate
             , TO_CHAR(we.work_date, 'YYYY-MM') || ' ' || TO_CHAR(we.work_date, 'W') || '번째 주' AS workWeek
             , SUM(we.work_time) AS realWorkTime
             , (get_working_days(MIN(TRUNC(we.work_date, 'IW')), MIN(TRUNC(we.work_date, 'IW')) + 6) * 8) AS averageTime
         FROM
-            vw_project p
-        JOIN vw_member m 
-            ON p.project_no = m.project_no
-        JOIN job j 
-            ON p.project_no = j.project_no
-        JOIN work_entries we 
-            ON j.job_no = we.job_no
-        JOIN work_details wd 
-            ON we.work_details_no = wd.work_details_no
-        <where>
-            m.user_id = #{userId}
+          vw_project p
+        JOIN job j
+          ON p.project_no = j.project_no
+       LEFT JOIN work_entries we
+          ON j.job_no = we.job_no
+        JOIN work_details wd
+          ON we.work_details_no = wd.work_details_no
+        WHERE EXISTS (
+                    SELECT 
+                              1
+                    FROM
+                      vw_member m
+                    WHERE
+                      m.project_no = p.project_no
+                    AND m.user_id = #{userId}
+      							  )  
             <if test="projectCode != null">
               AND p.project_code = #{projectCode}            
-            </if>
-        
-        </where>
+            </if>  
         GROUP BY 
             p.le
             , p.project_no
@@ -267,53 +281,37 @@
             , TRUNC(we.work_date, 'IW')
         ORDER BY 
               workWeek DESC
-            , p.project_no ASC
 	</select>
 	<!-- 월별 소요시간 보고서 -->
 	<select id="selectMonthReport" resultType="WorkReportDto">
-	  SELECT
-              LPAD(' ', (p.le - 1) * 4) || p.project_name AS projectName
-            , wd.work_type AS workType
-            , MIN(TRUNC(we.work_date, 'IW')) AS startDate  , MIN(TRUNC(we.work_date, 'IW')) + 6 AS endDate
-            , TO_CHAR(we.work_date, 'YYYY-MM') AS workMonth
-            , SUM(we.work_time) AS realWorkTime
-            , (get_working_days(MIN(TRUNC(we.work_date, 'MM')), MIN(LAST_DAY(TRUNC(we.work_date)))) * 8) AS averageTime
-        FROM 
-            vw_project p
-        JOIN vw_member m 
-            ON p.project_no = m.project_no
-        JOIN job j 
-            ON p.project_no = j.project_no
-        JOIN work_entries we 
-            ON j.job_no = we.job_no
-        JOIN work_details wd 
-            ON we.work_details_no = wd.work_details_no
-        <where>
-            m.user_id = #{userId}
-            <if test="projectCode != null">
-              AND p.project_code = #{projectCode}
-            </if>
-        </where>
-        GROUP BY
-            p.le
-            , p.project_no
-            , p.project_name
-            , wd.work_type
-            , TO_CHAR(we.work_date, 'YYYY-MM')
-        ORDER BY
-            workMonth DESC
-            , p.project_no ASC
-	</select>
-	
-	<!-- 소요시간에서 사용할 일감 조회 -->
-	<select id="selectIssueInProject" resultType="WorkInsertDto">
-			SELECT job_no
-		    , manager_id
-		    , title
-		    , project_no
-		   FROM job
-		   WHERE user_id = #{userId}
-           AND project_no = #{projectNo}
-	</select>
-
+    SELECT
+          LPAD(' ', (p.le - 1) * 4) || p.project_name AS projectName
+        , wd.work_type AS workType
+        , TRUNC(MIN(we.work_date), 'MM') AS startDate
+        , LAST_DAY(MIN(we.work_date)) AS endDate
+        , TO_CHAR(we.work_date, 'YYYY-MM') AS workMonth
+        , SUM(we.work_time) AS realWorkTime
+        , (get_working_days(TRUNC(MIN(we.work_date), 'MM'), LAST_DAY(MIN(we.work_date))) * 8) AS averageTime
+    FROM 
+        vw_project p
+    JOIN job j ON p.project_no = j.project_no
+    JOIN work_entries we ON j.job_no = we.job_no
+    JOIN work_details wd ON we.work_details_no = wd.work_details_no
+    WHERE EXISTS (
+        SELECT 1 FROM vw_member m 
+        WHERE m.project_no = p.project_no 
+          AND m.user_id = #{userId}
+    )
+    <if test="projectCode != null">
+      AND p.project_code = #{projectCode}
+    </if>
+    GROUP BY
+          p.le
+        , p.project_no
+        , p.project_name
+        , wd.work_type
+        , TO_CHAR(we.work_date, 'YYYY-MM')
+    ORDER BY
+          workMonth DESC
+</select>
 </mapper>

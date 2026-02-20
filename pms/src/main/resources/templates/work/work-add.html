@@ -20,22 +20,23 @@
 </head>
 <body>
 	<div class="container">
-		<form id="workInsert" method="post">
-			<!-- 일감번호 -->
-			<!-- 해당 일감번호에 대한 값을 가져옴 -->
+		<form id="workInsert" method="post"
+			th:action="@{/project/user/{projectCode}/work/insert(projectCode=${projectCode})}">
+			<!-- 해당 프로젝트의 일감번호에 대한 값을 가져옴 -->
 			<div class="row mb-3">
 				<div class="col-md-6">
-					<label class="form-label">일감 선택</label> <select class="form-select"
-						id="jobNo" name="jobNo">
-						<option th:each="issue : ${issueList}" th:value="${issue.jobNo}"
-							th:text="${issue.title}">
+					<label for="jobNo" class="form-label">일감선택</label> <select
+						class="form-select" id="jobNo" name="jobNo">
+						<option value=""></option>
+						<option th:each="issue : ${issueList}" th:text="${issue.title}"
+							th:value="${issue.jobNo}" th:data-manager="${issue.managerId}"></option>
 					</select>
 				</div>
 
 				<!-- 해당 일감 담당자의 정보를 자동으로 불러옴 -->
 				<div class="col-md-6">
 					<label class="form-label">담당자</label> <input type="text"
-						class="form-control" id="workers" name="workers" />
+						class="form-control" id="workers" name="workers" readonly />
 				</div>
 			</div>
 
@@ -67,9 +68,9 @@
 				<!-- 작업분류 -->
 				<div class="col-md-6">
 					<label class="form-label">작업분류</label> <select class="form-select"
-						name="workType">
+						name="workDetailsNo">
 						<option value="">선택</option>
-						<option th:each="status : ${statusList}"
+						<option th:each="status : ${workType}"
 							th:value="${status.workDetailsNo}" th:text="${status.workType}"></option>
 					</select>
 				</div>
@@ -78,12 +79,13 @@
 			<div class="row md-3">
 				<!-- 소요시간 조회로 이동-->
 				<div class="col-6 d-grid">
-					<a th:href="@{/work/list}"
-						class="btn btn-success text-white flex-fill">소요시간 조회</a>
+					<a
+						th:href="@{/project/user/{projectCode}/work/list(projectCode=${projectCode})}"
+						class="btn btn-primary text-white flex-fill">소요시간 조회</a>
 				</div>
 				<!-- 전송 -->
 				<div class="col-6 d-grid">
-					<button type="button" class="btn btn-primary flex-fill text-white"
+					<button type="button" class="btn btn-success flex-fill text-white"
 						data-bs-toggle="modal" data-bs-target="#workSubmitModal">등록</button>
 				</div>
 

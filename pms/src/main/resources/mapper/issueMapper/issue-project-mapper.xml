@@ -17,14 +17,10 @@
 		FROM job j
                  JOIN project p 
                  ON j.project_no = p.project_no
-        WHERE j.user_id = #{userId}
-
-       <!--WHERE p.project_code = #{projectCode}--> 
-        <!-- <if test="userId != null">
+        WHERE p.project_code = #{projectCode}
+        <if test="userId != null">
             AND j.user_id = #{userId} 
-        </if> -->
-        
-        WHERE j.user_id = #{userId} 
+        </if>
         
         
 	</select>

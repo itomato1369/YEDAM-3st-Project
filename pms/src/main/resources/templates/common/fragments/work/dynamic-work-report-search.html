@@ -8,23 +8,9 @@
 			<button type="button" class="btn-close btn-remove"
 				data-target="field-job"></button>
 		</div>
-		<input type="hidden" name="type" value="job" /> <input type="number"
+		<input type="hidden" name="type" value="job" /><input type="number"
 			name="jobNo" class="form-control form-control-sm"
 			placeholder="일감 번호를 선택하세요" />
-	</div>
-</div>
-<!-- 프로젝트 -->
-<div th:fragment="ProjectReportField"
-	class="col-md-3 condition-field d-none" id="field-project">
-	<div class="card card-body bg-light shadow-sm">
-		<div class="d-flex justify-content-between align-items-center mb-2">
-			<label class="fw-bold small">프로젝트 코드 번호</label>
-			<button type="button" class="btn-close btn-remove"
-				data-target="field-project"></button>
-		</div>
-		<input type="hidden" name="type" value="project" /> <input
-			type="number" name="projectNo" class="form-control form-control-sm"
-			placeholder="프로젝트 번호를 선택하세요" />
 	</div>
 </div>
 <!-- 사용자 -->

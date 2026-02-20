@@ -21,20 +21,23 @@
 </head>
 <body>
 	<div class="container">
-		<form id="workUpdate" method="post" th:action="@{/project/{projectCode}/work/update(projectCode=${projectCode})}">
+		<form id="workUpdate" method="post" 
+		th:action="@{/project/user/{projectCode}/work/update(projectCode=${projectCode}, workEntriesNo=${workDetails.workEntriesNo})}">
 			<!-- 일감번호 -->
+			
 			<!-- 해당 일감번호에 대한 값을 가져옴 readonly -->
 			<div class="row mb-3">
 				<div class="col-md-6">
-					<label class="form-label">소요시간 등록할 일감 번호</label> <input type="text"
-						class="form-control bg-light" id="jobNo" name="jobNo"
-						th:value="${workDetails.jobNo}" readonly />
+					<label class="form-label">일감명</label> 
+					<input type="text"
+						class="form-control bg-light" id="title" 
+						th:value="${workDetails.title}" readonly />
 				</div>
 
 				<!-- 일감번호를 가져오면 해당 일감 담당자의 정보도 같이 불러옴 -->
 				<div class="col-md-6">
 					<label class="form-label">담당자</label> <input type="text"
-						class="form-control bg-light" id="workers" name="workers"
+						class="form-control bg-light" id="workers"
 						th:value="${workDetails.workers}" readonly />
 				</div>
 			</div>
@@ -71,7 +74,7 @@
 					<label class="form-label">작업분류</label> <select class="form-select"
 						name="workDetailsNo">
 						<option value="">선택</option>
-						<option th:each="status : ${statusList}"
+						<option th:each="status : ${workType}"
 							th:value="${status.workDetailsNo}" th:text="${status.workType}"
 							th:selected="${status.workDetailsNo == workDetails.workDetailsNo}"></option>
 					</select>
@@ -81,10 +84,11 @@
 			<!-- 목록으로 / 수정버튼 -->
 			<div class="row md-3">
 				<div class="d-flex gap-2">
-					<a th:href="@{/work/list}"
-						class="btn btn-secondary flex-fill text-white"> 목록으로</a>
-					<button type="button" class="btn btn-primary flex-fill"
+					<a th:href="@{/project/user/{projectCode}/work/list(projectCode=${projectCode})}"
+						class="btn btn-primary flex-fill text-white">소요시간 조회</a>
+					<button type="button" class="btn btn-success text-white flex-fill"
 						data-bs-toggle="modal" data-bs-target="#workModifyModal">수정</button>
+						<!-- 수정 버튼 눌렀을 때 권한 있는지 체크 -->
 				</div>
 			</div>
 		</form>

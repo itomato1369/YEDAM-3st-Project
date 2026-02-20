@@ -28,14 +28,16 @@
 	<div class="container">
 		<div class="mb-3">
 			<h3 class="fw-bold">
-				<label th:if="${reportList != null and !#lists.isEmpty(reportList)}"
-					th:text="${reportList[0].managerId}" class="text-primary"></label>
+				<label th:if="${not #lists.isEmpty(reportList)}"
+					th:text="${reportList[0].projectName}" class="text-primary"></label>
+					<label th:if="${#lists.isEmpty(reportList)}"
+					th:text="${projectCode}" class="text-primary"></label>
 				<small class="text-muted">의 소요시간 보고서</small>
 			</h3>
 		</div>
 
 		<!-- 검색조건  -->
-		<form th:action="@{/project/{projectCode}/work/report(projectCode=${projectCode})}" method="get" id="reportSearchForm">
+		<form th:action="@{/project/user/{projectCode}/work/report(projectCode=${projectCode})}" method="get" id="reportSearchForm">
 			<div id="dynamicReportSearch" class="row g-3 mb-3">
 				<div
 					th:replace="~{common/fragments/work/dynamic-work-report-search}"></div>
@@ -51,8 +53,6 @@
 						<li><a class="dropdown-item add-condition" href="#"
 							data-target="field-job">일감별</a></li>
 						<li><a class="dropdown-item add-condition" href="#"
-							data-target="field-project">프로젝트별</a></li>
-						<li><a class="dropdown-item add-condition" href="#"
 							data-target="field-users">담당자별</a></li>
 						<li><a class="dropdown-item add-condition" href="#"
 							data-target="field-projectWeek">프로젝트 주별</a></li>
@@ -62,10 +62,10 @@
 					</ul>
 				</div>
 				<!-- 조회 버튼 -->
-				<button type="submit" class="btn btn-primary">조회</button>
+				<button type="submit" class="btn btn-primary">보고서 조회</button>
 				<!-- 소요시간 조회로 이동-->
-				<a th:href="@{/project/{projectCode}/work/list(projectCode=${projectCode})}"
-					class="btn btn-success text-white d-inline-flex align-items-center justify-content-center">소요시간
+				<a th:href="@{/project/user/{projectCode}/work/list(projectCode=${projectCode})}"
+					class="btn btn-primary text-white d-inline-flex align-items-center justify-content-center">소요시간
 					조회</a>
 			</div>
 		</form>
@@ -85,7 +85,7 @@
 						<th class="bi bi-calendar-range me-1">기간</th>
 						<th class="bi bi-alarm me-1">예상시간</th>
 						<th class="bi bi-play0circle me-1">실제 작업시간</th>
-						<th class="bi bi-graph-up me-1">진척률</th>
+						<th class="bi bi-graph-up me-1">진척도</th>
 					</tr>
 				</thead>
 				<tbody>
@@ -95,7 +95,7 @@
 							<span th:if="${reportType != 'job' and reportType != 'users'}"
 							th:text="${row.projectName}"></span> <span
 							th:if="${reportType == 'users'}"
-							th:text="${row.managerId} + ' (' + ${row.projectName} + ')'"></span>
+							th:text="${row.managerId}"></span>
 						</td>
 						<td><span th:if="${reportType == 'week'}"
 							th:text="${row.workWeek}"></span> <span

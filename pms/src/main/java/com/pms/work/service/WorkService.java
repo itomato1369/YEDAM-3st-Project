@@ -11,16 +11,17 @@ public interface WorkService {
 	// 소요시간 전체 조회 + 조건 검색기능
 	List<WorkSelectDto> findAllWorkEntries(WorkSelectDto workSelectDto);
 	
-	// 수정페이지 화면 단건조회
-	WorkUpdateDto findWorkEntriesByNo(WorkUpdateDto workUpdateDto);
-	
-	// 내가 속한 프로젝트의 일감 조회
+	//소요시간 등록 페이지 프로젝트의 일감 조회
 	List<WorkInsertDto> findMyIssue(WorkInsertDto workInsertDto);
-	
-	// 소요시간 등록 매개변수 타입은 WorkInsertDto
+	// 소요시간 등록 페이지 작업분류 조회
+	List<WorkInsertDto> findWorkType(String workType);
+	// 소요시간 등록 기능 매개변수 타입은 WorkInsertDto
 	void addWorkEntries(WorkInsertDto workInsertDto);
 	
-	// 소요시간 수정 매개변수 타입은 WorkUpdateDto
+	
+	// 수정페이지 화면 단건조회
+	WorkUpdateDto findWorkEntriesByNo(WorkUpdateDto workUpdateDto);
+	// 소요시간 수정 기능 매개변수 타입은 WorkUpdateDto
 	void modifyWorkEntries(WorkUpdateDto workUpdateDto);
 	
     // 통합 보고서 조회 Method 

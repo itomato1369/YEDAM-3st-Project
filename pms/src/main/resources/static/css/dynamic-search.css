@@ -68,3 +68,39 @@
 .condition-field:not(.d-none) {
     animation: fadeInUp 0.4s ease forwards;
 }
+/* 내 소요시간만 보기 스위치 컨테이너 스타일링 */
+.form-check.form-switch {
+    display: flex;
+    align-items: center;
+    background-color: #ffffff;
+    padding: 0.6rem 1.2rem;
+    padding-left: 3rem; /* 스위치 위치 확보 */
+    border-radius: 12px;
+    border: 1px solid #f0f0f0;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+    cursor: pointer;
+    margin-bottom: 0; /* 정렬 최적화 */
+}
+
+/* 호버 효과 통일 */
+.form-check.form-switch:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+    border-color: #0d6efd;
+}
+
+/* 스위치 핸들(동그라미) 색상 커스텀 */
+.form-check-input:checked {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+}
+
+/* 라벨 텍스트 스타일 통일 */
+.form-check-label {
+    color: #495057;
+    font-size: 0.85rem;
+    font-weight: 600 !important;
+    cursor: pointer;
+    user-select: none;
+}
