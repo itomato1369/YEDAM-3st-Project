@@ -10,6 +10,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.pms.files.service.FilesUploadService;
 import com.pms.issue.mapper.IssueMapper;
 import com.pms.issue.web.IssueDto;
+import com.pms.issue.web.IssueSelectDto;
 
 import lombok.RequiredArgsConstructor;
 
@@ -20,11 +21,33 @@ public class IssueService {
 	private final FilesUploadService filesUploadService;
 	private final IssueMapper issueMapper;
 
-	// 일감 리스트
-	public List<IssueDto> findIssueList(String userId) {
-		List<IssueDto> issueList = issueMapper.selectIssue(userId);
+	// 일감 리스트 전체 조회 + 조건 검색기능
+	public List<IssueSelectDto> findIssueList(IssueSelectDto issueSelectDto) {
+		List<IssueSelectDto> issueList = issueMapper.selectIssue(issueSelectDto);
 		System.out.println(issueList.toString());
 		return issueList;
+	}
+
+	// 일감 등록 화면에 필요한 데이터들을 각각 조회
+	// 일감 상태
+	public List<IssueDto> getStatusList(IssueDto issueDto) {
+		return issueMapper.selectIssueStatus(issueDto);
+	}
+	// 일감 유형
+	public List<IssueDto> getTypeList(IssueDto issueDto) {
+		return issueMapper.selectIssueType(issueDto);
+	}
+	// 우선순위
+	public List<IssueDto> getPriorityList(IssueDto issueDto) {
+		return issueMapper.selectIssuePriority(issueDto);
+	}
+	// 프로젝트에 소속된 멤버 조회
+	public List<IssueDto> getManagerList(IssueDto issueDto) {
+		return issueMapper.selectIssueManager(issueDto);
+	}
+	// 상위 일감 조회
+	public List<IssueDto> getParentIssueList(IssueDto issueDto) {
+		return issueMapper.selectParentIssue(issueDto);
 	}
 
 	// 일감 등록

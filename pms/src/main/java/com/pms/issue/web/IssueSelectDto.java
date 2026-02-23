@@ -5,34 +5,35 @@ import java.util.Date;
 import org.apache.ibatis.type.Alias;
 import org.springframework.format.annotation.DateTimeFormat;
 
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
-@Data
-@Alias("IssueDto")
-public class IssueDto {
-	private Integer jobNo;
+@Getter
+@Setter
+@Alias("IssueSelectDto")
+public class IssueSelectDto {
+	private String projectCode;
+	private String projectName;
+	private String userId;
 	private String managerId;
-	private Integer publicRole;
 	private String title;
-	private String content;
-	private Integer priority;
-	@DateTimeFormat(pattern = "yyyy-MM-dd")
-	private Date addDate;
 	@DateTimeFormat(pattern = "yyyy-MM-dd")
 	private Date startDate;
 	@DateTimeFormat(pattern = "yyyy-MM-dd")
 	private Date endDate;
+	
+	private Integer priority;
 	private Integer progress;
-	private String userId;
-	private String username;
+	
 	private Integer jobTypeNo;
 	private String jobType;
+	private Integer jobNo;
+	
 	private Integer jobStatusNo;
 	private String jobStatus;
-	private Integer projectNo;
-	private String projectCode;
-	private Integer parentJobNo;
-	private Integer filesNo;
-    private Integer commonNo;
-    private String commonName;
+
+	
+	
+	
+
 }

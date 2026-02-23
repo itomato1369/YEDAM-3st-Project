@@ -1,6 +1,6 @@
 // 일감 상태 선택 모달
 const issueModal = document.getElementById("issueSelectModal");
-const jobInput = document.getElementById("jobId");
+const jobInput = document.getElementById("jobTitle");
 
 issueModal.querySelectorAll(".job-item").forEach((item) => {
   item.addEventListener("click", function () {
