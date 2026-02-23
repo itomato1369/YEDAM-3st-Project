@@ -17,6 +17,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.pms.issue.service.IssueService;
 import com.pms.issue.web.IssueDto;
+import com.pms.issue.web.IssueSelectDto;
 
 @SpringBootTest
 @Transactional
@@ -32,14 +33,22 @@ public class IssueMockTest {
 
 		// given
 		String userId = "testUser";
+		String projectCode = "PMS100";
+		Integer projectNo = 1;
+		
 		IssueDto issue = new IssueDto();
 		issue.setUserId(userId);
+		issue.setProjectCode(projectCode);
+		issue.setProjectNo(projectNo);
 		issue.setTitle("테스트 이슈");
 		List<MultipartFile> files = Collections.emptyList();
 		issueService.addIssue(issue, files);
 		
 		// when
-		List<IssueDto> issueList = issueService.findIssueList(userId);
+		IssueSelectDto selectDto = new IssueSelectDto();
+		selectDto.setUserId(userId);
+		selectDto.setProjectCode(projectCode);
+		List<IssueSelectDto> issueList = issueService.findIssueList(selectDto);
 
 		// then
 		assertThat(issueList).isNotEmpty();

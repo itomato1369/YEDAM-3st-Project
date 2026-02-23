@@ -14,6 +14,25 @@ CREATE SEQUENCE IF NOT EXISTS JOB_SEQ START WITH 1 INCREMENT BY 1;
 CREATE SEQUENCE IF NOT EXISTS FILES_SEQ START WITH 1 INCREMENT BY 1;
 CREATE SEQUENCE IF NOT EXISTS FILES_DETAILS_SEQ START WITH 1 INCREMENT BY 1;
 
+-- COMMON
+CREATE TABLE IF NOT EXISTS common (
+	common_no VARCHAR(50) PRIMARY KEY, 
+	common_name VARCHAR(100), 
+	parent_common_no VARCHAR(50)
+);
+
+-- JOB_STATUS
+CREATE TABLE IF NOT EXISTS job_status (
+	job_status_no VARCHAR(50) PRIMARY KEY, 
+	job_status VARCHAR(100)
+);
+
+-- JOB_TYPE
+CREATE TABLE IF NOT EXISTS job_type (
+	job_type_no INT PRIMARY KEY, 
+	job_type VARCHAR(100)
+);
+
 -- JOB
 CREATE TABLE IF NOT EXISTS JOB (
     JOB_NO INT PRIMARY KEY,
@@ -41,8 +60,8 @@ CREATE TABLE IF NOT EXISTS FILES (
     UPLOAD_DATE TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- FILES_DETAILES
-CREATE TABLE IF NOT EXISTS FILES_DETAILES (
+-- FILES_DETAILS
+CREATE TABLE IF NOT EXISTS FILES_DETAILS (
     DETAILS_NO INT PRIMARY KEY,
     FILES_NO INT,
     FILES_NAME VARCHAR(255),
@@ -162,3 +181,31 @@ INSERT INTO PROJECT (PROJECT_NO, PROJECT_CODE, PROJECT_NAME) VALUES (1, 'PMS100'
 INSERT INTO GROUPS (GROUP_NO, GROUP_NAME, PROJECT_NO) VALUES (10, '개발팀', 1);
 INSERT INTO MEMBERS (MEMBER_NO, USER_ID, GROUP_NO) VALUES (100, 'song', 10);
 INSERT INTO G_PROJECT (GROUP_NO, PROJECT_NO, PM) VALUES (10, 1, 1);
+
+-- H2 함수
+CREATE ALIAS IF NOT EXISTS FN_GET_CODE_NAME AS '
+String fnGetCodeName(java.sql.Connection conn, String pCode) throws java.sql.SQLException {
+    if (pCode == null) return "알수없음";
+    java.sql.PreparedStatement ps = conn.prepareStatement("SELECT COMMON_NAME FROM common WHERE common_no = ?");
+    ps.setString(1, pCode);
+    java.sql.ResultSet rs = ps.executeQuery();
+    return rs.next() ? rs.getString(1) : "알수없음";
+}';
+
+CREATE ALIAS IF NOT EXISTS FN_GET_JOB_STATUS AS '
+String fnGetJobStatus(java.sql.Connection conn, String pCode) throws java.sql.SQLException {
+    if (pCode == null) return "알수없음";
+    java.sql.PreparedStatement ps = conn.prepareStatement("SELECT job_status FROM job_status WHERE job_status_no = ?");
+    ps.setString(1, pCode);
+    java.sql.ResultSet rs = ps.executeQuery();
+    return rs.next() ? rs.getString(1) : "알수없음";
+}';
+
+CREATE ALIAS IF NOT EXISTS FN_GET_JOB_TYPE AS '
+String fnGetJobType(java.sql.Connection conn, Integer pCode) throws java.sql.SQLException {
+    if (pCode == null) return "알수없음";
+    java.sql.PreparedStatement ps = conn.prepareStatement("SELECT job_type FROM job_type WHERE job_type_no = ?");
+    ps.setInt(1, pCode);
+    java.sql.ResultSet rs = ps.executeQuery();
+    return rs.next() ? rs.getString(1) : "알수없음";
+}';
