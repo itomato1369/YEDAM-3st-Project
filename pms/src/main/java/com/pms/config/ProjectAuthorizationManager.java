@@ -1,6 +1,5 @@
 package com.pms.config;
 
-import java.util.Map;
 import java.util.function.Supplier;
 
 import org.springframework.security.authorization.AuthorizationDecision;
@@ -21,46 +20,33 @@ public class ProjectAuthorizationManager implements AuthorizationManager<Request
 
 	@Override
 	public AuthorizationDecision check(Supplier<Authentication> authentication, RequestAuthorizationContext context) {
-
-		Map<String, String> variables = context.getVariables();
-		String projectCode = variables.get("projectCode");
-
-		// projectCode 확인
-		// projectCode 없는 경로면 접근 허용
-		if (projectCode == null) {
-			return new AuthorizationDecision(true);
-		}
-
-		// 인증 객체 확인
 		Authentication auth = authentication.get();
-		if (!isUserAuth(auth)) {
+		if (auth == null || !auth.isAuthenticated()) {
 			return new AuthorizationDecision(false);
 		}
-
+		
 		// 관리자 확인
 		CustomUserDetails customUser = (CustomUserDetails) auth.getPrincipal();
 		if (customUser.getUserEntity().isAdmin()) {
 			return new AuthorizationDecision(true);
 		}
-
-		// HTTP method Service 전달
-		String method = context.getRequest().getMethod();
-		String action = switch (method.toUpperCase()) {
-							case "GET" -> "READ";
-							case "POST" -> "CREATE";
-							case "PUT", "PATCH" -> "UPDATE";
-							case "DELETE" -> "DELETE";
-						default -> "READ";
-		};
 		
-		String userId = customUser.getUsername();
-		boolean isAuth = projectSecurityService.isAuth(userId, projectCode, action);
+		String userId = auth.getName();
+		String reqUri = context.getRequest().getRequestURI();
+		String method = getMethod(context.getRequest().getMethod());
+
+		boolean isAuth = projectSecurityService.isAuth(userId, reqUri, method);
 
 		return new AuthorizationDecision(isAuth);
 	}
 
-	private boolean isUserAuth(Authentication auth) {
-		return auth != null && auth.isAuthenticated() && (auth.getPrincipal() instanceof CustomUserDetails);
+	private String getMethod(String method) {
+		return switch (method.toUpperCase()) {
+			case "POST" -> "CREATE";
+			case "PUT", "PATCH" -> "UPDATE";
+			case "DELETE" -> "DELETE";
+			default -> "READ";
+		};
 	}
 
 }
