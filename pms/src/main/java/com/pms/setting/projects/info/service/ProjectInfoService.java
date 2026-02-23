@@ -4,6 +4,7 @@ import java.util.List;
 
 import com.pms.setting.common.entity.CommonEntity;
 import com.pms.setting.projects.dto.SettingProjectDto;
+import com.pms.setting.projects.info.dto.GroupListDTO;
 import com.pms.setting.projects.info.dto.ProjectResponseDTO;
 
 public interface ProjectInfoService {
@@ -17,4 +18,5 @@ public interface ProjectInfoService {
     void updateProjectBasicInfo(Long projectNo, ProjectResponseDTO.ProjectUpdateRequest request);
     void addGroupToProject(Long projectNo, ProjectResponseDTO.GroupAddRequest request);
     void removeGroupFromProject(Long projectNo, Long groupNo);
+    List<GroupListDTO> getAvailableGroupsForModal();
 }

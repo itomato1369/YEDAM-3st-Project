@@ -23,7 +23,9 @@ public class ProjectResponseDTO {
     public static class GroupInfoDTO {
         private Long groupNo;
         private String groupName;
-        private Integer isPm; 
+        private Integer isPm;
+        private String roleName;
+        private Integer memberCount;
     }
 
     @Getter @Setter

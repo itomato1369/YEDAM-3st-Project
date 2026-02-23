@@ -28,6 +28,4 @@ public class ProjectInfoController {
         model.addAttribute("project", project);
         return "settings/projects-info";
     }
-    
-    // 📍 나머지 API(@PatchMapping, @PostMapping 등)는 여기서 전부 지워주세요!
 }
