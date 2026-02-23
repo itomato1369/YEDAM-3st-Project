@@ -20,6 +20,7 @@ import com.pms.project.dto.IssueTrackerDTO;
 import com.pms.project.dto.JobDTO;
 import com.pms.project.dto.MemberDTO;
 import com.pms.project.dto.NoticeDTO;
+import com.pms.project.dto.PMGroupDTO;
 import com.pms.project.dto.ParentProjectDTO;
 import com.pms.project.dto.ProjectGMemberDTO;
 import com.pms.project.dto.ProjectInsertDTO;
@@ -38,10 +39,15 @@ public class ProjectServiceImpl implements ProjectService {
     private final ProjectMapper projectMapper;
     
     @Override
+	public List<PMGroupDTO> findIsPM(String userId) {
+		return projectMapper.selectIsPM(userId);
+	}
+    
+    @Override
     @Transactional(readOnly = true)
-    public List<ProjectSelectDTO> findUserProjects(String userId) {
+    public List<ProjectSelectDTO> findUserProjects(String userId, boolean isAdmin) {
         // [1] DB 왕복 1회: 기본 프로젝트 정보 로드
-        List<ProjectSelectDTO> allProjects = projectMapper.selectUserProjects(userId);
+        List<ProjectSelectDTO> allProjects = projectMapper.selectUserProjects(userId, isAdmin);
         if (allProjects.isEmpty()) return allProjects;
 
         // [2] 벌크 조회를 위한 ID 추출
@@ -150,14 +156,6 @@ public class ProjectServiceImpl implements ProjectService {
         // 소수점 둘째 자리까지 반올림
         return Math.round(avgTarget * 100.0) / 100.0;
     }
-    
-
-	@Override
-	public List<ProjectSelectDTO> findAdminProjects() {
-		List<ProjectSelectDTO> projects = projectMapper.selectAdminProjects();
-		return projects;
-	}
-
 
 	@Override
 	public List<ProjectSelectDTO> findProjectByOptions(ProjectSearchDTO searchDTO) {
@@ -240,6 +238,11 @@ public class ProjectServiceImpl implements ProjectService {
 
 
 	// 개요페이지
+	@Override
+	public ProjectInsertDTO findInfoByCode(String projectCode) {
+		return projectMapper.selectInfoByCode(projectCode);
+	}
+	
 	@Override
 	@Transactional(readOnly = true)
 	public IssueTrackerDTO findJobTrackerPivot(String projectCode) {
