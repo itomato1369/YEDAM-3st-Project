@@ -1,6 +1,7 @@
 package com.pms.setting.projects.info.service.impl;
 
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -8,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.pms.setting.common.entity.CommonEntity;
 import com.pms.setting.common.repository.CommonRepository;
 import com.pms.setting.projects.dto.SettingProjectDto;
+import com.pms.setting.projects.info.dto.GroupListDTO;
 import com.pms.setting.projects.info.dto.ProjectResponseDTO;
 import com.pms.setting.projects.info.entity.GProject;
 import com.pms.setting.projects.info.entity.Group;
@@ -48,11 +50,27 @@ public class ProjectInfoServiceImpl implements ProjectInfoService {
         dto.setStartDate(project.getStartDate());
         dto.setEndDate(project.getEndDate());
 
+        // 📍 모달용 데이터를 미리 가져와서 매핑에 활용 (엔티티 연관관계 에러 회피)
+        List<GroupListDTO> allGroups = getAvailableGroupsForModal();
+
         dto.setGroups(project.getProjectGroups().stream().map(gp -> {
             ProjectResponseDTO.GroupInfoDTO gDto = new ProjectResponseDTO.GroupInfoDTO();
             gDto.setGroupNo(gp.getGroup().getGroupNo());
             gDto.setGroupName(gp.getGroup().getGroupName());
             gDto.setIsPm(gp.getPm());
+            
+            // 모달 데이터에서 일치하는 정보를 찾아 역할명과 인원수 주입
+            allGroups.stream()
+                .filter(ag -> ag.getGroupNo().equals(gp.getGroup().getGroupNo()))
+                .findFirst()
+                .ifPresent(matched -> {
+                    gDto.setRoleName(matched.getRoleName());
+                    gDto.setMemberCount(matched.getMemberCount());
+                });
+
+            if(gDto.getRoleName() == null) gDto.setRoleName("일반");
+            if(gDto.getMemberCount() == null) gDto.setMemberCount(0);
+
             return gDto;
         }).toList());
 
@@ -104,7 +122,6 @@ public class ProjectInfoServiceImpl implements ProjectInfoService {
     @Override
     public void logicalDelete(Long projectNo) {
         Project project = projectRepository.findById(projectNo).get();
-        // 📍 삭제 코드 390 반영
         project.updateBasicInfo(project.getProjectName(), project.getProjectDesc(), 390, project.getPublicYn(), project.getStartDate(), project.getEndDate());
         em.flush(); em.clear();
     }
@@ -116,7 +133,7 @@ public class ProjectInfoServiceImpl implements ProjectInfoService {
 
     @Override @Transactional(readOnly = true)
     public List<SettingProjectDto> searchProjects(Integer status, String keyword) {
-        return getAllProjects(); // 실제 검색 Repository 메서드 연결 필요
+        return getAllProjects();
     }
 
     @Override @Transactional(readOnly = true)
@@ -130,5 +147,30 @@ public class ProjectInfoServiceImpl implements ProjectInfoService {
         dto.setProjectName(p.getProjectName());
         dto.setPublicYn(p.getPublicYn());
         return dto;
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public List<GroupListDTO> getAvailableGroupsForModal() {
+        List<Map<String, Object>> results = groupRepository.findAllGroupsWithRole();
+
+        return results.stream().map(row -> {
+            Map<String, Object> upperRow = new java.util.HashMap<>();
+            row.forEach((k, v) -> upperRow.put(k.toUpperCase(), v));
+
+            Object gNo = upperRow.get("GROUPNO");
+            if(gNo == null) gNo = upperRow.get("GROUP_NO");
+            Object gName = upperRow.get("GROUPNAME");
+            Object rName = upperRow.get("ROLE_NAME");
+            if(rName == null) rName = upperRow.get("ROLENAME");
+            Object mCount = upperRow.get("MEMBERCOUNT");
+
+            return GroupListDTO.builder()
+                    .groupNo(gNo != null ? ((Number) gNo).longValue() : 0L)
+                    .groupName(gName != null ? String.valueOf(gName) : "이름 없음")
+                    .roleName(rName != null ? String.valueOf(rName) : "일반")
+                    .memberCount(mCount != null ? ((Number) mCount).intValue() : 0)
+                    .build();
+        }).toList();
     }
 }

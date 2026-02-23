@@ -20,4 +20,6 @@ public class Group {
 
     @Column(name = "STATUS")
     private Integer status;
+
+    
 }
