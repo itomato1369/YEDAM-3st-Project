@@ -31,6 +31,7 @@ public class IssueSelectDto {
 	
 	private Integer jobStatusNo;
 	private String jobStatus;
+	private Integer filesNo;
 
 	
 	

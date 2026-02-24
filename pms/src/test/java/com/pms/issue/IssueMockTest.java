@@ -15,6 +15,9 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.pms.files.entity.FilesDetailsEntity;
+import com.pms.files.repository.FilesDetailsRepository;
+import com.pms.files.repository.FilesRepository;
 import com.pms.issue.service.IssueService;
 import com.pms.issue.web.IssueDto;
 import com.pms.issue.web.IssueSelectDto;
@@ -25,6 +28,12 @@ public class IssueMockTest {
 
 	@Autowired
 	private IssueService issueService;
+	
+	@Autowired
+	private FilesDetailsRepository filesDetailsRepository;
+	
+	@Autowired
+	private FilesRepository filesRepository;
 
 	@Test
 	@DisplayName("접속한 사용자의 일감을 가져오는지 확인")
@@ -128,13 +137,74 @@ public class IssueMockTest {
 			// then
 			assertThat(jobNo).isNotNull();
 			assertThat(issueDto.getFilesNo()).isNotNull();
-			System.out.println("일감 번호: " + jobNo);
-			System.out.println("파일 번호: " + issueDto.getFilesNo());
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		
 		System.out.println("[H2 DB] FILE UPLOAD TEST END");
+	}
+	
+	@Test
+	@DisplayName("일감 수정 및 파일 삭제 테스트, 모든 파일 삭제 시 files_no가 null 되는지 확인")
+	public void modifyIssueTest() {
+		System.out.println("[H2 DB] MODIFY ISSUE TEST START");
+		
+		// given
+		IssueDto issueDto = createBaseIssueDto("song", "원본 제목");
+		Integer jobNo = issueService.addIssue(issueDto, createMockFiles(3));
+		
+		Integer filesNo = getJobDetail(jobNo).getFilesNo();
+        List<Integer> deleteFilesList = filesDetailsRepository
+        		.findByFilesEntity_FilesNo(filesNo)
+                .stream()
+                .map(FilesDetailsEntity::getDetailsNo)
+                .toList();
+
+	    // when
+        issueDto.setJobNo(jobNo);
+        issueDto.setTitle("수정된 제목");
+        issueDto.setComment("수정 코멘트");
+        issueDto.setFilesNo(filesNo);
+        issueService.modifyIssue(issueDto, deleteFilesList);
+
+	    // then
+        IssueSelectDto updatedIssue = getJobDetail(jobNo);
+        assertThat(updatedIssue.getTitle()).isEqualTo("수정된 제목");
+        assertThat(updatedIssue.getFilesNo()).isNull();
+        assertThat(filesRepository.findById(filesNo)).isEmpty();
+
+		System.out.println("[H2 DB] MODIFY ISSUE TEST END");
+	}
+	
+	// 테스트 픽스처 메서드
+	/** 테스트용 IssueDto (필수값) */
+	private IssueDto createBaseIssueDto(String userId, String title) {
+		IssueDto dto = new IssueDto();
+		dto.setUserId(userId);
+		dto.setTitle(title);
+		dto.setProjectNo(1);
+		dto.setProjectCode("PMS100");
+		return dto;
+	}
+
+	/** Mock 파일 리스트 */
+	private List<MultipartFile> createMockFiles(int count) {
+		List<MultipartFile> files = new ArrayList<>();
+		for (int i = 1; i <= count; i++) {
+			files.add(new MockMultipartFile("file" + i, "test" + i + ".txt", "text/plain", ("content" + i).getBytes()));
+		}
+		return files;
+	}
+
+	/** 일감 조회 */
+	private IssueSelectDto getJobDetail(Integer jobNo) {
+		IssueSelectDto selectDto = new IssueSelectDto();
+		selectDto.setProjectCode("PMS100");
+		return issueService.findIssueList(selectDto)
+							.stream()
+							.filter(i -> i.getJobNo().equals(jobNo))
+							.findFirst()
+							.orElseThrow(() -> new RuntimeException("일감을 찾을 수 없습니다. jobNo: " + jobNo));
 	}
 	
 }
