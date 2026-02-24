@@ -342,6 +342,7 @@ public class ProjectServiceImpl implements ProjectService {
 				LocalDate start = LocalDate.parse(dto.getStartDate(), formatter);
 				LocalDate end = LocalDate.parse(dto.getEndDate(), formatter);
 				dto.setDuration((int) ChronoUnit.DAYS.between(start, end) + 1);
+				dto.setDisplayEnd(dto.getEndDate());
 				dto.setEndDate(null);
 				// log.debug("디버그 데이터: 시작일={}, 종료일={}, 기간={}", start, end, dto.getDuration());
 			}

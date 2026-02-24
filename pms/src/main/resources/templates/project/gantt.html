@@ -55,8 +55,11 @@
         gantt.config.columns = [
             { name: "text",       label: "작업명",  tree: true, width: "*" },
             { name: "start_date", label: "시작일",  align: "center" },
+            { name: "displayEnd", label: "종료일",  align: "center" },
             { name: "duration",   label: "기간(일)", align: "center" },
-            { name: "add",        label: "",       width: 44 }
+            { name: "workerName",  label: "담당자",   align: "center", width: 80 },
+            { name: "jobPriority", label: "우선순위", align: "center", width: 70 },
+            { name: "add",        label: "추가",       width: 44 }
         ];
 
         gantt.config.scales = [
