@@ -6,8 +6,9 @@
 
 <head>
 <meta charset="UTF-8" />
+<meta name="_csrf" th:content="${_csrf?.token}" />
+<meta name="_csrf_header" th:content="${_csrf?.headerName}" />
 <title>Dashboard</title>
-
 <script
 	src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 
@@ -177,7 +178,10 @@
 						<div class="row g-3" th:unless="${#lists.isEmpty(list.projects)}">
 							<div class="col-md-6 page-item-projects"
 								th:each="p : ${list.projects}">
-								<div class="card border-0 shadow-sm h-100 bg-light">
+								<div class="card border-0 shadow-sm h-100 bg-light"
+									th:data-code="${p.projectCode}"
+									onclick="goToProjectInfo(this.getAttribute('data-code'))"
+									style="cursor: pointer;">
 									<div class="card-body p-3">
 										<h6 class="fw-bold mb-0 text-truncate"
 											th:text="${p.projectName}">프로젝트명</h6>
@@ -242,7 +246,12 @@
 								th:each="m, stat : ${list.memos}">
 								<div
 									th:class="'card memo-card shadow-sm h-100 memo-bg-' + ${ (stat.index % 4) + 1 }"
-									th:onclick="viewMemoDetail([[${m.content}]])">
+									th:data-content="${m.content}"
+									onclick="viewMemoDetail(this.getAttribute('data-content'))">
+
+									<button class="btn-delete-memo"
+										th:onclick="deleteMemo([[${m.memoNo}]], event)" title="삭제">&times;</button>
+
 									<div class="card-body py-3">
 										<p class="mb-0 memo-content-preview" th:text="${m.content}">메모
 											내용</p>
@@ -289,162 +298,146 @@
 	</div>
 
 	<script th:inline="javascript">
-	document.addEventListener("DOMContentLoaded", function () {
-		
-		// 1. 페이지네이션 초기화 함수
-		function initWidgetPagination(widgetId, itemsPerPage) {
-			const items = document.querySelectorAll(`.page-item-${widgetId}`);
-			const pager = document.getElementById(`pager-${widgetId}`);
-			if (!pager) return;
+document.addEventListener("DOMContentLoaded", function () {
+    // 1. 페이지네이션 초기화 함수
+    function initWidgetPagination(widgetId, itemsPerPage) {
+        const items = document.querySelectorAll(`.page-item-${widgetId}`);
+        const pager = document.getElementById(`pager-${widgetId}`);
+        if (!pager) return;
 
-			pager.innerHTML = "";
-			const totalPages = Math.ceil(items.length / itemsPerPage);
-			
-			if (totalPages <= 1) {
-				pager.style.display = 'none';
-				items.forEach(item => item.classList.remove('hidden-item'));
-				return;
-            }
-            
-			pager.style.display = 'flex';
-			function renderPage(page) {
-				const start = (page - 1) * itemsPerPage;
-				const end = start + itemsPerPage;
-				items.forEach((item, index) => {
-					item.classList.toggle('hidden-item', !(index >= start && index < end));
-				});
-				pager.querySelectorAll('.page-link-sm').forEach((btn, idx) => {
-					btn.classList.toggle('active', idx === (page - 1));
-				});
-			}
+        pager.innerHTML = "";
+        const totalPages = Math.ceil(items.length / itemsPerPage);
+        
+        if (totalPages <= 1) {
+            pager.style.display = 'none';
+            items.forEach(item => item.classList.remove('hidden-item'));
+            return;
+        }
+        
+        pager.style.display = 'flex';
+        function renderPage(page) {
+            const start = (page - 1) * itemsPerPage;
+            const end = start + itemsPerPage;
+            items.forEach((item, index) => {
+                item.classList.toggle('hidden-item', !(index >= start && index < end));
+            });
+            pager.querySelectorAll('.page-link-sm').forEach((btn, idx) => {
+                btn.classList.toggle('active', idx === (page - 1));
+            });
+        }
 
-			for (let i = 1; i <= totalPages; i++) {
-				const btn = document.createElement('button');
-				btn.innerText = i;
-				btn.className = 'page-link-sm';
-				btn.onclick = () => renderPage(i);
-				pager.appendChild(btn);
-			}
-			renderPage(1);
-		}
+        for (let i = 1; i <= totalPages; i++) {
+            const btn = document.createElement('button');
+            btn.innerText = i;
+            btn.className = 'page-link-sm';
+            btn.onclick = () => renderPage(i);
+            pager.appendChild(btn);
+        }
+        renderPage(1);
+    }
 
-		// 초기 실행
-		initWidgetPagination('projects', 10);
-		initWidgetPagination('notices', 10);
-		initWidgetPagination('memos', 4);
+    initWidgetPagination('projects', 10);
+    initWidgetPagination('notices', 10);
+    initWidgetPagination('memos', 4);
 
-		// 드래그 앤 드롭 설정
-		const grid = document.getElementById("dashboardGrid");
-		new Sortable(grid, {
-			animation: 250,
-			handle: ".section-title",
-			ghostClass: "drag-ghost",
-			onEnd: () => {
-				const order = Array.from(document.querySelectorAll(".dashboard-item")).map(el => el.dataset.id);
-				localStorage.setItem("dashboardOrder", JSON.stringify(order));
-			}
-		});
+    const grid = document.getElementById("dashboardGrid");
+    new Sortable(grid, {
+        animation: 250,
+        handle: ".section-title",
+        ghostClass: "drag-ghost",
+        onEnd: () => {
+            const order = Array.from(document.querySelectorAll(".dashboard-item")).map(el => el.dataset.id);
+            localStorage.setItem("dashboardOrder", JSON.stringify(order));
+        }
+    });
 
-		const saved = JSON.parse(localStorage.getItem("dashboardOrder"));
-		if (saved) saved.forEach(id => {
-			const el = document.querySelector(`[data-id="${id}"]`);
-			if (el) grid.appendChild(el);
-		});
-		
-		// 외부 노출용 페이징 갱신 함수 등록
-		window.refreshMemoPaging = () => initWidgetPagination('memos', 4);
-	});
+    const saved = JSON.parse(localStorage.getItem("dashboardOrder"));
+    if (saved) saved.forEach(id => {
+        const el = document.querySelector(`[data-id="${id}"]`);
+        if (el) grid.appendChild(el);
+    });
+    
+    window.refreshMemoPaging = () => initWidgetPagination('memos', 4);
+});
 
-	// 메모 입력 폼 보이기
-	function showMemoForm() {
-		document.getElementById('memoInputForm').classList.remove('hidden-item');
-		document.getElementById('noMemoMsg')?.classList.add('hidden-item');
-		document.getElementById('memoTextarea').focus();
-	}
+/* 메모 API 관련 함수 */
 
-	// 메모 입력 폼 숨기기
-	function hideMemoForm() {
-		document.getElementById('memoInputForm').classList.add('hidden-item');
-		if (document.querySelectorAll('.page-item-memos').length === 0) {
-			document.getElementById('noMemoMsg')?.classList.remove('hidden-item');
-		}
-		document.getElementById('memoTextarea').value = '';
-	}
+const getCsrf = () => ({
+    token: document.querySelector('meta[name="_csrf"]')?.content,
+    header: document.querySelector('meta[name="_csrf_header"]')?.content
+});
 
-	// 메모 저장 (HTML 태그 방지 및 삭제 기능 포함)
-	function saveMemo() {
-		const textarea = document.getElementById('memoTextarea');
-		const content = textarea.value.trim();
-		if (!content) return alert("내용을 입력하세요.");
+function showMemoForm() {
+    document.getElementById('memoInputForm').classList.remove('hidden-item');
+    document.getElementById('noMemoMsg')?.classList.add('hidden-item');
+    document.getElementById('memoTextarea').focus();
+}
 
-		const memoList = document.getElementById('memoList');
-		const currentMemos = document.querySelectorAll('.page-item-memos');
-		const colorIdx = (currentMemos.length % 4) + 1;
-		
-		const wrapper = document.createElement('div');
-		wrapper.className = 'col-6 page-item-memos';
-		
-		// 카드 레이아웃 생성
-		wrapper.innerHTML = `
-			<div class="card memo-card shadow-sm h-100 memo-bg-${colorIdx}">
-				<button class="btn-delete-memo" title="삭제">&times;</button>
-				<div class="card-body py-3">
-					<p class="mb-0 memo-content-preview"></p>
-				</div>
-			</div>`;
-		
-		// XSS 방지를 위해 innerText로 내용 삽입
-		wrapper.querySelector('.memo-content-preview').innerText = content;
+function hideMemoForm() {
+    document.getElementById('memoInputForm').classList.add('hidden-item');
+    checkEmptyMemo();
+    document.getElementById('memoTextarea').value = '';
+}
 
-		// 카드 클릭 시 상세보기 (직접 할당하여 안전함)
-		wrapper.querySelector('.memo-card').onclick = function() {
-			viewMemoDetail(content);
-		};
+function saveMemo() {
+    const textarea = document.getElementById('memoTextarea');
+    const content = textarea.value.trim();
+    if (!content) return alert("내용을 입력하세요.");
 
-		// 삭제 버튼 클릭 이벤트
-		wrapper.querySelector('.btn-delete-memo').onclick = function(e) {
-			e.stopPropagation(); // 카드 클릭 이벤트 전파 막기
-			if(confirm("이 메모를 삭제하시겠습니까?")) {
-				wrapper.remove();
-				if(window.refreshMemoPaging) window.refreshMemoPaging();
-				checkEmptyMemo();
-			}
-		};
-		
-		// 목록 맨 앞에 삽입
-		memoList.insertBefore(wrapper, memoList.firstChild);
-		
-		hideMemoForm();
-		if(window.refreshMemoPaging) window.refreshMemoPaging();
-	}
+    const csrf = getCsrf();
+    const headers = { 'Content-Type': 'application/json' };
+    
+    // CSRF 토큰이 존재하는 경우에만 헤더에 추가 (매우 중요)
+    if (csrf.header && csrf.token) {
+        headers[csrf.header] = csrf.token;
+    }
 
-	// 기존(Thymeleaf) 메모 삭제 함수
-	function deleteExistingMemo(btn, event) {
-		event.stopPropagation();
-		if(confirm("이 메모를 삭제하시겠습니까?")) {
-			const item = btn.closest('.page-item-memos');
-			item.remove();
-			if(window.refreshMemoPaging) window.refreshMemoPaging();
-			checkEmptyMemo();
-		}
-	}
+    fetch('/api/memos', {
+        method: 'POST',
+        headers: headers,
+        body: JSON.stringify({ content: content })
+    }).then(res => {
+        if (res.ok) location.reload();
+        else alert("저장에 실패했습니다.");
+    }).catch(err => console.error("Fetch error:", err));
+}
 
-	// 메모가 하나도 없는지 체크하여 메시지 표시
-	function checkEmptyMemo() {
-		const memoCount = document.querySelectorAll('.page-item-memos').length;
-		const noMemoMsg = document.getElementById('noMemoMsg');
-		if (memoCount === 0 && noMemoMsg) {
-			noMemoMsg.classList.remove('hidden-item');
-		}
-	}
+function deleteMemo(memoNo, event) {
+    if (event) event.stopPropagation();
+    if (!confirm("정말 삭제하시겠습니까?")) return;
 
-	// 메모 상세 보기 (모달)
-	function viewMemoDetail(content) {
-		document.getElementById('fullMemoContent').innerText = content;
-		const modal = new bootstrap.Modal(document.getElementById('memoDetailModal'));
-		modal.show();
-	}
-	</script>
+    const csrf = getCsrf();
+    const headers = {};
+    
+    if (csrf.header && csrf.token) {
+        headers[csrf.header] = csrf.token;
+    }
 
+    fetch(`/api/memos/${memoNo}`, {
+        method: 'DELETE',
+        headers: headers
+    }).then(res => {
+        if (res.ok) location.reload();
+        else alert("삭제에 실패했습니다.");
+    });
+}
+
+function viewMemoDetail(content) {
+    document.getElementById('fullMemoContent').innerText = content;
+    const modal = new bootstrap.Modal(document.getElementById('memoDetailModal'));
+    modal.show();
+}
+
+function checkEmptyMemo() {
+    const memoCount = document.querySelectorAll('.page-item-memos').length;
+    const noMemoMsg = document.getElementById('noMemoMsg');
+    if (memoCount === 0 && noMemoMsg) noMemoMsg.classList.remove('hidden-item');
+}
+
+function goToProjectInfo(projectCode) {
+    if (!projectCode) return alert("프로젝트 코드가 유효하지 않습니다.");
+    location.href = `/project/user/${projectCode}/info`;
+}
+</script>
 </body>
 </html>
