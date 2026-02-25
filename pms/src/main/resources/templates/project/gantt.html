@@ -200,7 +200,9 @@
         });
 
         // 2. [등록] 버튼 클릭 시 Fetch 전송
-        document.getElementById('btnIssueSubmit').addEventListener('click', function() {
+        document.getElementById('btnIssueSubmit').addEventListener('click', function(e) {
+        	e.preventDefault();
+        	
             const form = document.getElementById('issueInsert');
             const formData = new FormData(form);
 
@@ -227,9 +229,22 @@
                 if (currentTaskInfo) delete currentTaskInfo.$new; 
                 ganttIssueModal.hide(); 
 
-                // 임시 바를 지우고, 서버에서 온 진짜 데이터로 차트 갱신
+                // 임시 바 지우기
                 gantt.deleteTask(currentTaskInfo.id);
-                gantt.addTask(savedTask, savedTask.parent);
+
+                // ★ 핵심: 서버에서 온 DTO(IssueDto)를 간트 차트 규격으로 변환!
+                let newGanttTask = {
+                    id: "j" + savedTask.jobNo,        // 간트 차트의 일감 고유 ID
+                    text: savedTask.title,            // 화면에 보일 작업명 (title -> text)
+                    start_date: savedTask.startDate,  // 서버 포맷에 따라 Date 객체나 스트링으로 가공 필요할 수 있음
+                    duration: 1,                      // 기본 기간
+                    parent: currentTaskInfo.parent,   // 기존에 가지고 있던 부모 ID 유지
+                    workerName: savedTask.username,   // 담당자 이름 매핑
+                    jobPriority: savedTask.commonName // 우선순위 매핑
+                };
+
+                // 변환된 데이터로 차트에 추가
+                gantt.addTask(newGanttTask, newGanttTask.parent);
 
                 gantt.message({text: "일감이 등록되었습니다.", type: "success"});
             })

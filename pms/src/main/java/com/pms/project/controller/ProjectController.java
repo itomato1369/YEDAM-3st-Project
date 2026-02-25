@@ -196,14 +196,11 @@ public class ProjectController {
         
         // 1. 경로 변수로 들어온 프로젝트 코드 및 필수 데이터 세팅
         issueDto.setProjectCode(projectCode);
-        
-        // 3. MyBatis 매퍼 호출 (insert 실행 후, selectKey에 의해 issueDto.jobNo에 새 ID가 담깁니다)
-        issueMapper.insertIssue(issueDto);
 
-        // 4. 파일 처리 로직 (List<MultipartFile> files 등 DTO에 파일 필드가 있다면 여기서 처리)
+        // 2. 파일 처리 로직 (List<MultipartFile> files 등 DTO에 파일 필드가 있다면 여기서 처리)
 		Integer jobNo = issueService.addIssue(issueDto, files);
 
-        // 5. ★ 새 ID(jobNo)가 담긴 DTO 객체를 그대로 반환! (이게 프론트엔드의 savedTask로 들어갑니다)
+        // 3. ★ 새 ID(jobNo)가 담긴 DTO 객체를 그대로 반환! (이게 프론트엔드의 savedTask로 들어갑니다)
         return issueDto;
     }
 }
