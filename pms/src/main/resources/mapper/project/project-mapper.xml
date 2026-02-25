@@ -201,7 +201,7 @@
 	<!--/* 프로젝트정보 */-->
 	<select id="selectInfoByCode" resultType="ProjectInsertDTO">
 	SELECT 
-	  project_name , start_date , end_date
+	  project_no, project_name , start_date , end_date
 	FROM project
 	WHERE project_code=#{projectCode}
 	</select>

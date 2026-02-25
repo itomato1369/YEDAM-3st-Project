@@ -17,20 +17,16 @@
 		 , p.project_name
 		 , we.work_details_no
 		 , wd.work_type
-		FROM 
-		  project p
-		LEFT JOIN 
-		  job j
-		ON 
-		  p.project_no = j.project_no
-		INNER JOIN 
-		  work_entries we
-		ON 
-		  j.job_no = we.job_no
-		 LEFT JOIN
-		   work_details wd
-		 ON
-		   we.work_details_no = wd.work_details_no
+		 , u.username
+		FROM project p
+		          LEFT JOIN job j
+		          ON p.project_no = j.project_no
+		          INNER JOIN work_entries we
+		          ON j.job_no = we.job_no
+		          LEFT JOIN work_details wd
+		          ON we.work_details_no = wd.work_details_no
+		          JOIN users u
+		          ON j.user_id = u.user_id
 		<where>
          p.project_code = #{projectCode}
 		  <if test="userId != null">

@@ -26,14 +26,14 @@
 </head>
 <body>
 	<div class="container">
-		<div class="mb-3">
+		<div class="mb-3 mt-3">
 			<h3 class="fw-bold">
 				<label th:if="${not #lists.isEmpty(workEntriesList)}"
 					th:text="${workEntriesList[0].projectName}" class="text-primary"></label>
 					<!-- 소요시간 정보가 없으면 projectCode를 보여줌 -->
 				<label th:if="${#lists.isEmpty(workEntriesList)}"
 				th:text="${projectCode}" class="text-primary"></label>
-				<small class="text-muted">의 소요시간 조회</small>
+				<small class="text-muted">의 소요시간 전체 조회</small>
 			</h3>
 		</div>
 
@@ -46,16 +46,21 @@
 			</div>
 
 			<!-- 검색조건 추가 버튼 + 조회 버튼 -->
-			<div class="mb-3 d-flex align-items-stretch justify-content-end gap-2">
-				<div class="form-check form-switch me-2">
-					<input class="form-check-input" type="checkbox"
-					id="showOnlyMe" name="showOnlyMe" value="Y"
-					th:checked="${showOnlyMe == 'Y'}"
-					onchange="this.form.submit()"/>
-					<!-- checked는 서버에 넘어온 데이터에 따라 체크박스 체크하느냐 마느냐
-					그리고 내 소요시간만 보기 누르면 바로 동적쿼리 작동 -->
-					<label class="form-check-label"
-					for="showOnlyMe">내 소요시간만 보기</label>
+			<div class="mb-3 d-flex align-items-center justify-content-end gap-2">
+			<!-- 내 소요시간만 보기 -->
+				<div class="form-check form-switch mb-0">
+					<input class="form-check-input"
+						 type="checkbox" 
+						 id="showOnlyMe"
+						 name="showOnlyMe" 
+						 value="Y" 
+						 th:checked="${showOnlyMe == 'Y'}"
+						 onchange="this.form.submit()"
+						 autocomplete="off" />
+						<!-- checked는 서버에 넘어온 데이터에 따라 체크박스 체크하느냐 마느냐
+						그리고 내 소요시간만 보기 누르면 바로 동적쿼리 작동 -->
+					<label class="form-check-label" 
+							for="showOnlyMe">내 소요시간만 보기</label>
 				</div>
 				<div class="dropdown me-2">
 					<button class="btn btn-secondary dropdown-toggle" type="button"
@@ -108,7 +113,7 @@
 					<td th:text="${list.workType}"></td>
 					<td th:text="${#dates.format(list.workDate, 'yyyy-MM-dd')}"></td>
 					<td th:text="${list.workTime}"></td>
-					<td th:text="${list.workers}"></td>
+					<td th:text="${list.username}"></td>
 					<td><a
 						th:href="@{/project/user/{projectCode}/work/update(projectCode=${projectCode}, workNo=${list.workEntriesNo})}"
 						class="btn btn-sm btn-outline-primary">수정</a></td>

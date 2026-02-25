@@ -18,6 +18,7 @@ public class WorkSelectDto {
 	private String projectName;
 	// job
 	private String userId; // 현재 로그인 된 유저 id 정보, 일감 작성자
+	private String username; // 실제 유저 이름
 	private String managerId; // 일감 담당자
 	private Integer progress; // 일감 진척도
 	private Integer jobNo; // 일감 번호

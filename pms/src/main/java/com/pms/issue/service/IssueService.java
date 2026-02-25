@@ -8,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.pms.files.entity.FilesDetailsEntity;
 import com.pms.files.repository.FilesDetailsRepository;
 import com.pms.files.service.FilesDeleteService;
 import com.pms.files.service.FilesUploadService;
@@ -21,7 +22,6 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 public class IssueService {
-
 
 	private final FilesUploadService filesUploadService;
 	private final FilesDeleteService filesDeleteService;
@@ -62,6 +62,10 @@ public class IssueService {
 	public List<IssueDto> getParentIssueList(IssueDto issueDto) {
 		return issueMapper.selectParentIssue(issueDto);
 	}
+	// 수정이력 조회
+	public List<IssueDto> getHistoryList(IssueDto issueDto) {
+		return issueMapper.selectHistoryList(issueDto);
+	}
 
 	// 일감 등록
 	@Transactional
@@ -95,9 +99,15 @@ public class IssueService {
 		issueDto.setFilesNo(saveFilesNo);
 		
 		// 일감 업데이트 -> 히스토리 저장
-		Optional.ofNullable(issueDto.getFilesNo())
-	    		.filter(filesNo -> !filesDetailsRepository.existsByFilesEntity_FilesNo(filesNo))
-	    		.ifPresent(filesNo -> issueDto.setFilesNo(null));
+	    Optional.ofNullable(issueDto.getFilesNo())
+	            .ifPresent(filesNo -> {
+	                List<FilesDetailsEntity> fileDetails = filesDetailsRepository.findByFilesEntity_FilesNo(filesNo);
+	                if (fileDetails.isEmpty()) {
+	                    issueDto.setFilesNo(null);
+	                }
+	            });
+		
+		
 		issueMapper.updateIssue(issueDto);
 		issueMapper.insertIssueHistory(issueDto);
 	}

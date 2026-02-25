@@ -30,6 +30,8 @@ public interface IssueMapper {
 	
 	// 히스토리 저장
 	Integer insertIssueHistory(IssueDto issueDto);
+	// 히스토리 조회
+	List<IssueDto> selectHistoryList(IssueDto issueDto);
 	
 	// 일감 등록 기능
 	Integer insertIssue(IssueDto issueDto);

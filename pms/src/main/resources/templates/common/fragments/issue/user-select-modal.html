@@ -14,9 +14,9 @@
                             class="list-group-item user-item" 
                             style="cursor: pointer;"
                             th:data-id="${manager.userId}" 
-                            th:data-name="${manager.username}"
-                            >
-                            <span th:text="${manager.username}">담당자 이름</span>
+                            th:data-name="${manager.username}">
+                            <!-- 실제 담당자 이름이 표시되는 곳 -->
+                            <span th:text="${manager.username}"></span>
                         </li>
                     </ul>
                 </div>
@@ -28,5 +28,4 @@
             </div>
         </div>
     </div>
-	<script th:src="@{/js/issue/user-select-modal.js}"></script>
 </th:block>

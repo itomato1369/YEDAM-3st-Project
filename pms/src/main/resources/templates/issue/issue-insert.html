@@ -33,12 +33,16 @@
 		</div>
 		<form id="issueInsert"
 			th:action="@{/project/user/{projectCode}/issue/new(projectCode=${projectCode})}"
-			enctype="multipart/form-data" method="post" th:object="${issue}">
-
+			enctype="multipart/form-data" 
+			method="post" 
+			th:object="${issue}">
 			<!-- 제목 -->
 			<div class="mb-3">
-				<label class="form-label">제목 *</label> <input type="text"
-					class="form-control mt-2" name="title" placeholder="제목을 입력하세요"
+				<label class="form-label">제목 *</label> 
+				<input type="text"
+					class="form-control mt-2" 
+					name="title" 
+					placeholder="제목을 입력하세요"
 					th:field=*{title} />
 				<div th:if="${#fields.hasErrors('title')}" th:errors="*{title}"></div>
 			</div>
@@ -47,11 +51,15 @@
 			<!-- th:value는 서버로 보내는 값 th:text는 사용자에게 보여주는 값 -->
 			<div class="row mb-3">
 				<div class="col-md-6">
-					<label class="form-label">일감 상태 *</label> <select
-						class="form-select" th:field="*{jobStatusNo}" name="jobStatusNo">
+					<label class="form-label">일감 상태 *</label> 
+					<select class="form-select" 
+								th:field="*{jobStatusNo}" 
+								name="jobStatusNo">
 						<option value="">선택</option>
 						<option th:each="status : ${statusList}"
-							th:text="${status.jobStatus}" th:value="${status.jobStatusNo}"></option>
+								  	 th:text="${status.jobStatus}" 
+								  	 th:value="${status.jobStatusNo}">
+						</option>
 					</select>
 					<div th:if="${#fields.hasErrors('jobStatusNo')}"
 						th:errors="*{jobStatusNo}"></div>
@@ -59,11 +67,15 @@
 
 				<!-- 유형 -->
 				<div class="col-md-6">
-					<label class="form-label">일감 유형 *</label> <select
-						class="form-select" th:field="*{jobTypeNo}" name="jobTypeNo">
+					<label class="form-label">일감 유형 *</label> 
+					<select class="form-select"
+							    th:field="*{jobTypeNo}"
+							    name="jobTypeNo">
 						<option value="">선택</option>
-						<option th:each="type : ${typeList}" th:text="${type.jobType}"
-							th:value="${type.jobTypeNo}"></option>
+						<option th:each="type : ${typeList}"
+									th:text="${type.jobType}"
+									th:value="${type.jobTypeNo}">
+						</option>
 					</select>
 					<div th:if="${#fields.hasErrors('jobTypeNo')}"
 						th:errors="*{jobTypeNo}"></div>
@@ -74,17 +86,22 @@
 			<div class="mb-3">
 				<label class="form-label">상세 설명</label>
 				<div class="form-floating">
-					<textarea class="form-control" placeholder="상세 설명을 입력하세요"
-						id="floatingTextarea2" style="height: 100px" name="content"></textarea>
-					<label for="floatingTextarea2"></label>
+					<textarea class="form-control" 
+								   placeholder="상세 설명을 입력하세요"
+								   id="floatingTextarea2" 
+								   style="height: 100px" 
+								   name="content"></textarea>
+					<label for="floatingTextarea"></label>
 				</div>
 			</div>
 
 			<div class="row mb-3">
 				<!-- 우선순위 -->
 				<div class="col-md-6">
-					<label class="form-label">우선순위 *</label> <select
-						class="form-select" th:field="*{priority}" name="priority">
+					<label class="form-label">우선순위 *</label> 
+					<select class="form-select" 
+							   	th:field="*{priority}"
+							    name="priority">
 						<option value="">선택</option>
 						<option th:each="priority : ${priorityList}"
 							th:value="${priority.commonNo}" th:text="${priority.commonName}"></option>
@@ -99,9 +116,12 @@
 					<button type="button" class="btn btn-outline-primary"
 						data-bs-toggle="modal" data-bs-target="#userSelectModal">담당자
 						선택 *</button>
-					<input type="text" class="form-control" id="managerName"
-						th:field="*{userId}" readonly /> <input type="hidden"
-						name="managerId" id="managerId" />
+					<input type="text" 
+							   class="form-control" 
+							   id="managerName"
+							   th:field="*{userId}"
+							   readonly /> 
+					<input type="hidden" name="managerId" id="managerId" />
 					<div th:if="${#fields.hasErrors('userId')}" th:errors="*{userId}"></div>
 				</div>
 			</div>
@@ -123,11 +143,14 @@
 			</div>
 
 			<div class="row mb-3">
-				<!-- 상위 일감 -->
+				<!-- 상위 일감 선택 -->
 				<div class="col-md-6">
-					<button type="button" class="btn btn-outline-primary"
-						data-bs-toggle="modal" data-bs-target="#issueSelectModal">상위일감
-						선택</button>
+					<button type="button" 
+								class="btn btn-outline-primary"
+								data-bs-toggle="modal" 
+								data-bs-target="#issueSelectModal">
+								상위일감 선택
+					</button>
 					<input type="text" class="form-control" id="jobTitle" readonly />
 					<input type="hidden" name="parentJobNo" id="parentJobNo" value="">
 				</div>
@@ -148,8 +171,12 @@
 			<div class="row mb-3 align-items-center">
 				<!-- 첨부파일 -->
 				<div class="col-md-6">
-					<label for="formFile" class="form-label">첨부파일</label> <input
-						class="form-control" type="file" id="files" name="files" multiple />
+					<label for="formFile" class="form-label">첨부파일</label> 
+					<!-- input type="file"은 value 속성이 없어도 잘 전달이 된다
+					왜냐하면 file 그 자체를 담아야 하기 때문에 
+					form 제출시 enctype="multipart/form-data 가 type="file"을 찾는다 
+					그 file 속성안의 실제 파일들을 꺼내서 HTTP Body에 담아서 전송-->
+					<input class="form-control" type="file" id="files" name="files" multiple />
 					<!-- 여러개 선택시 첨부파일 이름이 표시 -->
 					<ul id="fileList" class="mt-2 list-group"></ul>
 				</div>
@@ -197,5 +224,8 @@
 		th:replace="~{common/fragments/issue/issue-submit-modal :: IssueSubmitModal}"></th:block>
 
 	<script th:src="@{/js/issue/issue-insert.js}"></script>
+	<script th:src="@{/js/issue/user-select-modal.js}"></script>
+	<script th:src="@{/js/issue/issue-select-modal.js}"></script>
+	<script th:src="@{/js/issue/issue-submit-modal.js}"></script>
 </body>
 </html>

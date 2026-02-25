@@ -27,15 +27,37 @@
 </div>
 <!-- 일감상태 value option 사용해서 다시-->
 <div th:fragment="JobStatusField" class="col-md-3 condition-field d-none"
-	id="field-jobStatus">
+	id="field-jobStatusNo">
 	<div class="card card-body bg-light shadow-sm">
 		<div class="d-flex justify-content-between align-items-center mb-2">
-			<label class="fw-bold small">상태</label>
+			<label class="fw-bold small">일감 상태</label>
 			<button type="button" class="btn-close btn-remove"
-				data-target="field-jobStatus"></button>
+				data-target="field-jobStatusNo"></button>
 		</div>
-		<input type="text" name="status" class="form-control form-control-sm"
-			placeholder="일감 상태를 입력하세요">
+		<select name="jobStatusNo" class="form-select">
+		<option value="">선택</option>
+		<option th:each="status : ${statusList}"
+					th:value="${status.jobStatusNo}"
+					th:text="${status.jobStatus}"></option>
+	   </select>
+	</div>
+</div>
+
+<!-- 일감 유형 -->
+<div th:fragment="JobTypeField" class="col-md-3 condition-field d-none"
+	id="field-jobTypeNo">
+	<div class="card card-body bg-light shadow-sm">
+		<div class="d-flex justify-content-between align-items-center mb-2">
+			<label class="fw-bold small">일감 유형</label>
+			<button type="button" class="btn-close btn-remove"
+				data-target="field-jobTypeNo"></button>
+		</div>
+		<select name="jobTypeNo" class="form-select">
+		<option value="0">선택</option>
+		<option th:each="type : ${typeList}"
+					th:value="${type.jobTypeNo}"
+					th:text="${type.jobType}"></option>
+	   </select>
 	</div>
 </div>
 
@@ -48,8 +70,13 @@
 			<button type="button" class="btn-close btn-remove"
 				data-target="field-priority"></button>
 		</div>
-		<input type="text" name="status" class="form-control form-control-sm"
-			placeholder="우선순위를 입력하세요">
+		<select name="priority" class="form-select">
+		<option value="0">선택</option>
+		<option th:each="priority : ${priorityList}"
+					th:value="${priority.commonNo}"
+					th:text="${priority.commonName}"></option>
+	   </select>
+	
 	</div>
 </div>
 
@@ -60,7 +87,7 @@
 		<div class="d-flex justify-content-between align-items-center mb-2">
 			<label class="fw-bold small">담당자</label>
 			<button type="button" class="btn-close btn-remove"
-				data-target="field-manager"></button>
+				data-target="field-managerId"></button>
 		</div>
 		<input type="text" name="managerId" class="form-control form-control-sm"
 			placeholder="담당자를 선택하세요">
@@ -75,7 +102,7 @@
 			<button type="button" class="btn-close btn-remove"
 				data-target="field-startDate"></button>
 		</div>
-		<input type="text" name="jobStart"
+		<input type="text" name="startDate"
 			class="form-control form-control-sm datepicker"
 			placeholder="시작 날짜를 선택하세요">
 	</div>
@@ -89,7 +116,7 @@
 			<button type="button" class="btn-close btn-remove"
 				data-target="field-endDate"></button>
 		</div>
-		<input type="text" name="jobEnd"
+		<input type="text" name="endDate"
 			class="form-control form-control-sm datepicker"
 			placeholder="마감 날짜를 선택하세요">
 	</div>
@@ -104,7 +131,7 @@
 				data-target="field-progress"></button>
 		</div>
 		<input type="text" name="progress"
-			class="form-control form-control-sm" placeholder="진척도를 입력하세요">
+			class="form-control form-control-sm" placeholder="10단위로 입력">
 	</div>
 </div>
 

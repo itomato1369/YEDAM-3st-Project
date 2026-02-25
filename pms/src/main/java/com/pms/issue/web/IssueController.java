@@ -42,11 +42,12 @@ public class IssueController {
 											@PathVariable String projectCode,
 											Model model, 
 											IssueSelectDto issueSelectDto, 
+											IssueDto issueDto,
 											@RequestParam(value = "showOnlyMe", required = false) String showOnlyMe) {
 		UserEntity user = customUser.getUserEntity();
-
 		issueSelectDto.setProjectCode(projectCode);
-		// 내 일감만 보기
+		
+		// 내 일감만 보기 조건
 		if ("Y".equals(showOnlyMe)) {
 			//  체크를 하면 id를 가져와서 내것만 보여줌
 			issueSelectDto.setUserId(user.getUserId());
@@ -56,10 +57,27 @@ public class IssueController {
 			issueSelectDto.setUserId(null);
 		}
 
+		// 전체 조회 + 검색조건 조회
+		List<IssueSelectDto> issueList =  issueService.findIssueList(issueSelectDto);
+		// 일감 상태 목록
+		List<IssueDto> statusList = issueService.getStatusList(issueDto);
+		// 일감 유형 목록
+		List<IssueDto> typeList = issueService.getTypeList(issueDto);
+		// 우선순위 목록
+		List<IssueDto> priorityList = issueService.getPriorityList(issueDto);
+		// 프로젝트 참여중인 멤버 목록
+		List<IssueDto> managerList = issueService.getManagerList(issueDto);
+		
+			
+		model.addAttribute("showOnlyMe", showOnlyMe);
+		model.addAttribute("statusList", statusList);
+		model.addAttribute("typeList", typeList);
+		model.addAttribute("priorityList", priorityList);
 		model.addAttribute("userId", user.getUserId());
 		model.addAttribute("projectCode", projectCode);
-		model.addAttribute("issueList",  issueService.findIssueList(issueSelectDto));
-		
+		model.addAttribute("managerList", managerList); 
+		model.addAttribute("project", projectService.findInfoByCode(projectCode));
+		model.addAttribute("issueList", issueList);
 		return "issue/issue-list";
 	}
 
@@ -78,7 +96,7 @@ public class IssueController {
 		List<IssueDto> priorityList = issueService.getPriorityList(issueDto);
 		// 프로젝트 참여중인 멤버 목록
 		List<IssueDto> managerList = issueService.getManagerList(issueDto);
-		// 상위 일감 목록
+		// 프로젝트에 등록된 일감 목록
 		List<IssueDto> parentIssueList = issueService.getParentIssueList(issueDto);
 		
 		// model 에 담아서 보냄
@@ -90,19 +108,19 @@ public class IssueController {
 		model.addAttribute("projectCode", projectCode);
 		model.addAttribute("project", projectService.findInfoByCode(projectCode));
 		
+		
 		return "issue/issue-insert";
 	}
 
 	// 일감 등록 기능
 	@PostMapping("/new")
 	public String addIssue(@AuthenticationPrincipal CustomUserDetails customUser, 
-			@Valid @ModelAttribute("issue") IssueDto issueDto, 
-			BindingResult bindingResult,
-			@RequestParam("files") List<MultipartFile> files, 
-			RedirectAttributes redirectAttributes, 
-			@PathVariable String projectCode,
-			Model model) {
-		
+									  @Valid @ModelAttribute("issue") IssueDto issueDto, 
+									  BindingResult bindingResult,
+									  @RequestParam("files") List<MultipartFile> files, 
+									  RedirectAttributes redirectAttributes, 
+									  @PathVariable String projectCode,
+									  Model model) {
 		 if (bindingResult.hasErrors()) { 
 			 System.out.println("에러 발생 필드: " + bindingResult.getFieldErrors());
 				issueDto.setProjectCode(projectCode);
@@ -114,7 +132,7 @@ public class IssueController {
 				List<IssueDto> priorityList = issueService.getPriorityList(issueDto);
 				// 프로젝트 참여중인 멤버 목록
 				List<IssueDto> managerList = issueService.getManagerList(issueDto);
-				// 상위 일감 목록
+				// 프로젝트에 등록된 일감 목록
 				List<IssueDto> parentIssueList = issueService.getParentIssueList(issueDto);
 				// model 에 담아서 보냄
 				model.addAttribute("statusList", statusList);
@@ -123,10 +141,14 @@ public class IssueController {
 				model.addAttribute("managerList", managerList);
 				model.addAttribute("parentIssueList", parentIssueList);
 				model.addAttribute("projectCode", projectCode);
+				model.addAttribute("project", projectService.findInfoByCode(projectCode));
+				
 				return "issue/issue-insert";
 		 }
 
 		try {
+			Integer projectNo = projectService.findInfoByCode(projectCode).getProjectNo();
+			issueDto.setProjectNo(projectNo);
 			issueDto.setUserId(customUser.getUsername());
 			Integer jobNo = issueService.addIssue(issueDto, files);
 			return "redirect:/project/user/" + projectCode + "/issue/info?jobNo=" + jobNo;
@@ -141,12 +163,20 @@ public class IssueController {
 	@GetMapping("/update")
 	public String issueModifyPage(@AuthenticationPrincipal CustomUserDetails customUser,
 			                                    @PathVariable String projectCode,
-			                                    @RequestParam("jobNo") Integer jobNo, 
+			                                    @RequestParam("jobNo") Integer jobNo,
+			                                    IssueDto issueDto,
 			                                    Model model) {
 		
 		UserEntity user = customUser.getUserEntity();
 		IssueSelectDto issue =  issueService.findIssue(jobNo);
-		// 첨부파일 목록 가져오는건 추후에 model.addAttribute("fileList", );
+		// 프로젝트 참여중인 멤버 목록
+		List<IssueDto> managerList = issueService.getManagerList(issueDto);
+		// 프로젝트에 등록된 일감 목록
+		List<IssueDto> parentIssueList = issueService.getParentIssueList(issueDto);
+		
+		// model에 담아서 보내줌
+		model.addAttribute("managerList", managerList);
+		model.addAttribute("parentIssueList", parentIssueList);
 		model.addAttribute("statusList", issueService.getStatusList(null));
 		model.addAttribute("typeList", issueService.getTypeList(null));
 		model.addAttribute("priorityList", issueService.getPriorityList(null));
@@ -182,23 +212,26 @@ public class IssueController {
 		}
 	}
 	
+	
 	// 일감 상세조회 form
 	@GetMapping("/info")
 	public String issueInfoPage(@AuthenticationPrincipal CustomUserDetails customUser,
 			                                    @PathVariable String projectCode,
 			                                    @RequestParam("jobNo") Integer jobNo, 
+			                                    IssueDto issueDto,
 			                                    Model model) {
 		
 		UserEntity user = customUser.getUserEntity();
 		IssueSelectDto issue =  issueService.findIssue(jobNo);
 		
+		// model에 담아서 보내줌 
 		model.addAttribute("statusList", issueService.getStatusList(null));
 		model.addAttribute("typeList", issueService.getTypeList(null));
 		model.addAttribute("priorityList", issueService.getPriorityList(null));
+		model.addAttribute("historyList", issueService.getHistoryList(issueDto));
 		model.addAttribute("issue", issueService.findIssue(jobNo));
 		model.addAttribute("userId", user.getUserId());
 		model.addAttribute("projectCode", projectCode);
-		model.addAttribute("project", projectService.findInfoByCode(projectCode));
 		if (issue.getFilesNo() != null)
 			model.addAttribute("fileList", fileListService.findFileList(issue.getFilesNo()));
 		else 

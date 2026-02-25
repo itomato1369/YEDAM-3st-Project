@@ -31,9 +31,11 @@ public class WorkController {
 
 	// 소요시간 전체 조회 + 검색기능
 	@GetMapping("/list")
-	public String workList(@AuthenticationPrincipal CustomUserDetails customUser, @PathVariable String projectCode,
-			@RequestParam(value = "showOnlyMe", required = false) String showOnlyMe,
-			Model model, WorkSelectDto workSelectDto) {
+	public String workList(@AuthenticationPrincipal CustomUserDetails customUser, 
+									@PathVariable String projectCode,
+									@RequestParam(value = "showOnlyMe", required = false) String showOnlyMe,
+									Model model, 
+									WorkSelectDto workSelectDto) {
 		// showOnlyMe 가 필수는 아니라 required = false임 없어도 controller는 작동해야 하니까
 		
 		// 현재 로그인 정보가 담긴 커스텀 객체
@@ -53,12 +55,14 @@ public class WorkController {
 			workSelectDto.setUserId(null);
 		}
 
+		// 전체 조회 + 검색조건 조회
+		List<WorkSelectDto> workEntriesList = workService.findAllWorkEntries(workSelectDto);
 		
 		// 검색한 결과를 담아 보냄
 		model.addAttribute("showOnlyMe", showOnlyMe);
 		model.addAttribute("projectCode", projectCode);
 		model.addAttribute("userId", user.getUserId());
-		model.addAttribute("workEntriesList", workService.findAllWorkEntries(workSelectDto));
+		model.addAttribute("workEntriesList", workEntriesList);
 		return "work/work-list";
 	}
 	/*
@@ -74,9 +78,9 @@ public class WorkController {
 	// 소요시간 등록 화면 + 작업분류의 이름 가져오기 + 프로젝트의 일감 번호
 	@GetMapping("/insert")
 	public String workAddPage(@AuthenticationPrincipal CustomUserDetails customUser, 
-			@PathVariable String projectCode, 
-			Model model,
-			@Valid @ModelAttribute("work") WorkInsertDto workInsertDto) {
+											 @PathVariable String projectCode, 
+											 Model model,
+											 @Valid @ModelAttribute("work") WorkInsertDto workInsertDto) {
 	    //  현재 로그인한 사용자 정보
 		UserEntity user = customUser.getUserEntity();
 
@@ -94,14 +98,17 @@ public class WorkController {
 	}
 	// 쇼요시간 등록 기능
 	@PostMapping("/insert")
-	public String workAdd(@PathVariable String projectCode, WorkInsertDto workInsertDto) {
+	public String workAdd(@PathVariable String projectCode, 
+									  WorkInsertDto workInsertDto) {
 		workService.addWorkEntries(workInsertDto);
 		return "redirect:/project/user/" + projectCode + "/work/list";
 	}
 
 	// 소요시간 수정화면 이미 등록된 정보를 서버가 제공 + 작업분류 가져오기
 	@GetMapping("/update")
-	public String workModifyPage(@AuthenticationPrincipal CustomUserDetails customUser, @PathVariable String projectCode, @RequestParam("workNo") Integer workEntriesNo,
+	public String workModifyPage(@AuthenticationPrincipal CustomUserDetails customUser, 
+												 @PathVariable String projectCode, 
+												 @RequestParam("workNo") Integer workEntriesNo,
 		Model model, WorkUpdateDto workUpdateDto) {
 		UserEntity user = customUser.getUserEntity();
 	
@@ -111,13 +118,15 @@ public class WorkController {
 		
 		model.addAttribute("userId", user.getUserId());
 		model.addAttribute("projectCode", projectCode);
-	//	model.addAttribute("workType", workService.findWorkType(workUpdateDto.getWorkType()));
+		model.addAttribute("workType", workService.findWorkType(workUpdateDto.getWorkType()));
 		model.addAttribute("workDetails", workService.findWorkEntriesByNo(workUpdateDto));
 		return "work/work-modify";
 	}
 	// 소요시간 수정 기능
 	@PostMapping("/update")
-	public String workModify(@AuthenticationPrincipal CustomUserDetails customUser, @PathVariable String projectCode, @RequestParam("workEntriesNo") Integer workEntriesNo,
+	public String workModify(@AuthenticationPrincipal CustomUserDetails customUser, 
+										  @PathVariable String projectCode,
+										  @RequestParam("workEntriesNo") Integer workEntriesNo,
 			WorkUpdateDto workUpdateDto) {
 		// 현재 로그인 한 사용자 Id 가져와서 
 		UserEntity user = customUser.getUserEntity();
@@ -143,7 +152,8 @@ public class WorkController {
 
 	// 소요시간 보고서
 	@GetMapping("/report")
-	public String workReport(@AuthenticationPrincipal CustomUserDetails customUser, @PathVariable String projectCode,
+	public String workReport(@AuthenticationPrincipal CustomUserDetails customUser, 
+										  @PathVariable String projectCode,
 		WorkReportDto workReportDto, Model model) {
 		
 		UserEntity user = customUser.getUserEntity();

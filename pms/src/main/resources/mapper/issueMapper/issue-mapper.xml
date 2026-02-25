@@ -15,10 +15,46 @@
                    , FN_GET_CODE_NAME(j.priority) AS priority_name
 		           , j.manager_id
 		           , j.files_no
+		           , j.progress
+		           , j.start_date
+		           , j.end_date
+		           , u.username
 		FROM job j
                  JOIN project p 
                  ON j.project_no = p.project_no
+                 JOIN users u
+                 ON j.user_id = u.user_id
         WHERE p.project_code = #{projectCode}
+        <if test="userId != null and userId !=''">
+          AND j.user_id = #{userId}
+        </if>
+        <if test="jobNo != null and jobNo != '0'">
+          AND j.job_no = #{jobNo}
+        </if>
+        <if test="title != null">
+          AND j.title LIKE '%' || #{title} || '%'
+        </if>
+        <if test="managerId != null">
+          AND j.manager_id = #{managerId}
+        </if>
+        <if test="jobStatusNo !=null and jobStatus != '0' and jobStatus !=''">
+          AND j.job_status_no = #{jobStatusNo}
+        </if>
+        <if test="jobTypeNo != null and jobType != '0' and jobType != ''">
+          AND j.job_type_no = #{jobTypeNo}
+        </if>
+        <if test="priority != null and priority !='0'">
+          AND j.priority = #{priority}
+        </if>
+        <if test="progress !=null and progress !='0'">
+          AND j.progress = #{progress}
+        </if>
+        <if test="startDate != null">
+          AND j.start_date = #{startDate}
+        </if>
+        <if test="endDate != null">
+          AND j.end_date = #{endDate}
+        </if>
 	</select>
 	
 	<!-- 일감 상태 목록-->
@@ -74,6 +110,20 @@
 	  WHERE project_code = #{projectCode} 
 	</select>
 	
+	<!-- history 수정이력 조회 -->
+	<select id="selectHistoryList" resultType="IssueDto">
+	  SELECT
+                 h.history_no
+               , h."COMMENT"
+               , h.user_id
+               , h.history_date
+               , u.username
+      FROM history h
+      JOIN users u
+      ON h.user_id = u.user_id
+      WHERE h.job_no = #{jobNo}
+      ORDER BY h.history_date DESC
+	</select>
     <!-- 일감 등록 기능 -->
 	<insert id="insertIssue" parameterType="IssueDto">
 		<selectKey keyProperty="jobNo" resultType="Integer" order="BEFORE">
@@ -138,7 +188,7 @@
 	<insert id="insertIssueHistory" parameterType="IssueDto">
 		INSERT INTO HISTORY (
 		history_no
-		, comment
+		, "COMMENT"
 		, user_id
 		, history_date
 		, delete_date

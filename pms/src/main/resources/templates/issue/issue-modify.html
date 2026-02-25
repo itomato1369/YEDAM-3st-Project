@@ -5,6 +5,7 @@
 	layout:fragment="Content">
 <head>
 <meta charset="UTF-8" />
+<link rel="stylesheet" th:href="@{/css/modal.css}" />
 <!-- bootstrap-datepicker -->
 <link rel="stylesheet"
 	href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.10.0/css/bootstrap-datepicker.min.css" />
@@ -30,17 +31,26 @@
 		</div>
 		<form id="issueUpdate"
 			th:action="@{/project/user/{projectCode}/issue/update(projectCode=${projectCode})}"
-			enctype="multipart/form-data" method="post" th:object="${issue}">
+			enctype="multipart/form-data" 
+			method="post" 
+			th:object=${issue}>
+					<!-- 수정은 PutMapping 했음 -->
+					<input type="hidden" name="_method" value="PUT">
+					<!-- history 테이블에 입력하기 위해 jobNo를 보내줘야 함 -->
+					<input type="hidden" th:field="*{jobNo}">
 			<!-- 제목 -->
 			<div class="row mb-3">
 				<div class="col-md-6">
 					<label class="form-label">제목</label> <input type="text"
 						th:value="${issue.title}" class="form-control mt-2" name="title" />
 				</div>
-				<!-- 수정사유 작성 comment -->
+				<!-- 수정사유 작성 comment는 history 테이블에 값 입력-->
 				<div class="col-md-6">
-					<label class="form-label">수정 사유 작성</label> <input type="text"
-						class="form-control mt-2" />
+					<label class="form-label">수정 사유 작성</label> 
+					<input type="text" name="comment" class="form-control mt-2" />
+						<div class="form-text text-danger mt-1" style="font-size: 0.85rem;">
+        					<i class="bi bi-exclamation-circle me-1"></i>수정 사유는 필수 입력 사항입니다.
+    					</div>
 				</div>
 			</div>
 
@@ -72,7 +82,8 @@
 				<label class="form-label">상세 설명</label>
 				<div class="form-floating">
 					<textarea class="form-control" id="floatingTextarea2"
-						style="height: 100px" name="content" th:text="${issue.content}"></textarea>
+						style="height: 100px" name="content" \
+						th:field="*{content}"></textarea>
 					<label for="floatingTextarea2"></label>
 				</div>
 			</div>
@@ -94,8 +105,12 @@
 					<button type="button" class="btn btn-outline-primary"
 						data-bs-toggle="modal" data-bs-target="#userSelectModal">
 						담당자 선택</button>
-					<input type="text" class="form-control" id="managerId"
-						name="managerId" th:value="${issue.managerId}" readonly />
+					<input type="text" 
+							  class="form-control"
+							  id="managerName"
+							  th:field="*{userId}" 
+							  readonly /> 
+					<input type="hidden" name="managerId" id="managerId" />
 				</div>
 			</div>
 
@@ -117,14 +132,15 @@
 			</div>
 
 			<div class="row mb-3">
-				<!-- 상위 일감 -->
+				<!-- 상위 일감 선택 -->
 				<div class="col-md-6">
 					<button type="button" class="btn btn-outline-primary"
 						data-bs-toggle="modal" data-bs-target="#issueSelectModal">
 						상위일감 선택</button>
-					<input type="text" class="form-control" id="parentJob"
-						name="parentJob" th:value="${issue.parentJobNo}" readonly />
+					<input type="text" class="form-control" id="jobTitle" readonly />
+					<input type="hidden" name="parentJobNo" id="parentJobNo" value="">
 				</div>
+				
 				<!-- 진척도 -->
 				<div class="col-md-6">
 					<label class="form-label">진척도</label> <select class="form-select"
@@ -139,8 +155,8 @@
 			<div class="row mb-3 align-items-center">
 				<!-- 첨부파일 -->
 				<div class="col-md-6">
-					<label for="formFile" class="form-label">첨부파일</label> <input
-						class="form-control" type="file" id="files" name="files" multiple />
+					<label for="formFile" class="form-label">첨부파일</label> 
+					<input class="form-control" type="file" id="files" name="files" multiple />
 					<!-- 여러개 선택시 첨부파일 이름이 표시 -->
 					<div class="col-md-6">
 						<label>첨부파일 다운로드</label>
@@ -154,17 +170,26 @@
 				<!-- 공개범위 -->
 				<div class="col-md-5 d-flex flex-column justify-content-center">
 					<label class="form-label mb-2">공개범위</label>
-
-					<div class="d-flex gap-5">
+							<!-- 전체 공개 -->
+					<div class="d-flex gap-4">
 						<div class="form-check">
-							<input class="form-check-input" type="radio" name="publicRole"
-								id="public" th:value="${issue.publicRole}" /> <label
-								class="form-check-label" for="public">전체공개</label>
+							<input class="form-check-input" 
+								       type="radio" 
+								       name="publicRole"
+									   id="public" 
+									   value="1"
+									   th:checked="${issue.publicRole == '1'}" /> 
+							<label class="form-check-label" for="public">전체공개</label>
 						</div>
+								<!-- 일부 공개-->
 						<div class="form-check">
-							<input class="form-check-input" type="radio" name="publicRole"
-								id="private" th:value="${issue.publicRole}" /> <label
-								class="form-check-label" for="private">일부공개</label>
+							<input class="form-check-input"
+									   type="radio"
+									   name="publicRole"
+									   id="private"
+									   value="0"
+									   th:checked="${issue.publicRole == '0'}" /> 
+							<label class="form-check-label" for="private">일부공개</label>
 						</div>
 					</div>
 				</div>
@@ -212,5 +237,7 @@
 		th:replace="~{common/fragments/issue/issue-reject-modal :: IssueRejectModal}"></th:block>
 		
 	<script th:src="@{/js/issue/issue-update.js}"></script>
+	<script th:src="@{/js/issue/user-select-modal.js}"></script>
+	<script th:src="@{/js/issue/issue-select-modal.js}"></script>
 </body>
 </html>

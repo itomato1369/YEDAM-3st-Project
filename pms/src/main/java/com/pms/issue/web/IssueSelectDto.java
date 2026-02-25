@@ -18,6 +18,7 @@ public class IssueSelectDto {
 	private String projectNo;
 	private String projectName;
 	private String userId;
+	private String username;
 	private String managerId;
 	private String title;
 	private String content;
@@ -32,7 +33,7 @@ public class IssueSelectDto {
 	private String parentJobNo;
 	private String jobTypeNo;
 	private String jobType;
-	private String jobNo;
+	private Integer jobNo;
 	private String jobStatusNo;
 	private String jobStatus;
 	private Integer filesNo;
