@@ -96,12 +96,11 @@ public class IssueController {
 					@PathVariable String projectCode,
 					IssueDto issueDto,
 					@RequestParam(value = "deleteFiles", required = false) List<Integer> deleteFiles,
-					// TODO 추후에 파일 추가 구현하기
-					//@RequestParam(value = "files", required = false) List<MultipartFile> newFiles,
+					@RequestParam(value = "files", required = false) List<MultipartFile> newFiles,
 					RedirectAttributes redirectAttributes) {
 		try {
 			issueDto.setUserId(customUser.getUsername());
-			issueService.modifyIssue(issueDto, deleteFiles);
+			issueService.modifyIssue(issueDto, deleteFiles, newFiles);
 			redirectAttributes.addFlashAttribute("message", "일감이 수정되었습니다.");
 			return "redirect:/project/user/" + projectCode + "/issue/info?jobNo=" + issueDto.getJobNo();
 		} catch (Exception e) {

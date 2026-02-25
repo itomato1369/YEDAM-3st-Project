@@ -11,6 +11,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.pms.files.repository.FilesDetailsRepository;
 import com.pms.files.service.FilesDeleteService;
 import com.pms.files.service.FilesUploadService;
+import com.pms.files.util.FilesHasUtil;
 import com.pms.issue.mapper.IssueMapper;
 import com.pms.issue.web.IssueDto;
 import com.pms.issue.web.IssueSelectDto;
@@ -25,6 +26,7 @@ public class IssueService {
 	private final FilesUploadService filesUploadService;
 	private final FilesDeleteService filesDeleteService;
 	private final FilesDetailsRepository filesDetailsRepository;
+	private final FilesHasUtil filesHasUtil;
 	private final IssueMapper issueMapper;
 
 
@@ -65,7 +67,7 @@ public class IssueService {
 		}
 
 		String userId = issueDto.getUserId();
-		Integer filesNo = filesUploadService.uploadFiles(files, userId);
+		Integer filesNo = filesUploadService.uploadFiles(files, userId, issueDto.getFilesNo());
 		issueDto.setFilesNo(filesNo);
 
 		issueMapper.insertIssue(issueDto);
@@ -76,9 +78,17 @@ public class IssueService {
 	
 	// 일감 수정
 	@Transactional
-	public void modifyIssue(IssueDto issueDto, List<Integer> deleteFileList) {
+	public void modifyIssue(IssueDto issueDto, 
+							List<Integer> deleteFileList,
+							List<MultipartFile> newFiles) throws Exception {
 		// 파일 삭제
-		filesDeleteService.deleteFiles(deleteFileList);
+		if(filesHasUtil.hasDeleteFiles(deleteFileList)) {
+			filesDeleteService.deleteFiles(deleteFileList);
+		}
+		
+		// 파일 업로드
+		Integer saveFilesNo = filesUploadService.uploadFiles(newFiles, issueDto.getUserId(), issueDto.getFilesNo());
+		issueDto.setFilesNo(saveFilesNo);
 		
 		// 일감 업데이트 -> 히스토리 저장
 		Optional.ofNullable(issueDto.getFilesNo())
