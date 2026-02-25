@@ -54,9 +54,26 @@
 /* 4. 콘텐츠 영역 */
 .section-content {
 	flex: 1 1 auto;
-	overflow-y: auto;
+	overflow-y: auto;  /* 세로 스크롤 허용 */
 	overflow-x: hidden;
-	padding-right: 5px;
+	padding-right: 8px; /* 스크롤바와 콘텐츠 사이 여백 */
+}
+
+/* 스크롤바 디자인을 깔끔하게 (선택 사항) */
+.section-content::-webkit-scrollbar {
+	width: 6px;
+}
+.section-content::-webkit-scrollbar-thumb {
+	background-color: #e0e0e0;
+	border-radius: 10px;
+}
+.section-content::-webkit-scrollbar-track {
+	background: transparent;
+}
+
+/* 페이징 버튼 영역을 숨깁니다 */
+.widget-pagination {
+	display: none !important;
 }
 
 /* 5. 페이지네이션 스타일 */
@@ -364,7 +381,7 @@
 	</div>
 
 <script th:inline="javascript">
-/* --- 1. 초기화 로직 (페이지네이션, 정렬) --- */
+/* --- 1. 초기화 로직 (페이지네이션, 정렬) 
 document.addEventListener("DOMContentLoaded", function () {
     function initWidgetPagination(widgetId, itemsPerPage) {
         const items = document.querySelectorAll(`.page-item-${widgetId}`);
@@ -385,7 +402,34 @@ document.addEventListener("DOMContentLoaded", function () {
             btn.onclick = () => renderPage(i); pager.appendChild(btn);
         }
         renderPage(1);
-    }
+    }--- */
+    /* --- 1. 초기화 로직 (페이지네이션, 정렬) --- */
+    document.addEventListener("DOMContentLoaded", function () {
+        // 1. 기존에 있던 initWidgetPagination 함수 정의와 호출부(projects, notices, memos)를 모두 삭제합니다.
+        
+        // 2. 정렬(Sortable) 및 드래그 앤 드롭 순서 유지 로직만 남겨둡니다.
+        const grid = document.getElementById("dashboardGrid");
+        if (grid) {
+            new Sortable(grid, {
+                animation: 250, 
+                handle: ".section-title", 
+                ghostClass: "drag-ghost",
+                onEnd: () => {
+                    const order = Array.from(document.querySelectorAll(".dashboard-item")).map(el => el.dataset.id);
+                    localStorage.setItem("dashboardOrder", JSON.stringify(order));
+                }
+            });
+
+            // 저장된 순서 복원
+            const saved = JSON.parse(localStorage.getItem("dashboardOrder"));
+            if (saved) {
+                saved.forEach(id => { 
+                    const el = document.querySelector(`[data-id="${id}"]`); 
+                    if (el) grid.appendChild(el); 
+                });
+            }
+        }
+    });
 
     initWidgetPagination('projects', 10);
     initWidgetPagination('notices', 10);
@@ -446,18 +490,20 @@ async function showNoticeEditModal(noticeNo) {
             fileHtml += '<ul class="list-group list-group-sm shadow-sm mb-3">';
             
             data.files.forEach(file => {
+                // 파일명이 null일 경우를 대비
+                const fileName = file.filesName || '이름 없는 파일';
+                
                 fileHtml += `
                     <li class="list-group-item d-flex justify-content-between align-items-center py-2">
                         <div class="text-truncate" style="max-width: 80%;">
                             <i class="cil-file text-primary"></i> 
-                            <a href="/download/${file.filesUuid}" class="text-decoration-none small text-dark fw-semibold" title="다운로드">
-                                ${file.filesName}
+                            <a href="/download/${file.detailsNo}" class="text-decoration-none small text-dark fw-semibold">
+                                ${fileName}
                             </a>
-                            <span class="text-muted small ms-2">(${file.filesSize})</span>
                         </div>
-                        <button type="button" class="btn btn-sm text-danger border-0 p-0" 
-                                onclick="deleteIndividualFile(${file.detailsNo}, this)" title="파일만 삭제">
-                            <i class="cil-x-circle" style="font-size: 1.2rem;">&times;</i>
+                        <button type="button" class="btn btn-sm btn-outline-danger border-0 p-1" 
+                                onclick="deleteIndividualFile(${file.detailsNo}, this)">
+                            <span aria-hidden="true">&times;</span>
                         </button>
                     </li>`;
             });
@@ -474,39 +520,6 @@ async function showNoticeEditModal(noticeNo) {
     }
 }
 
-/**
- * 파일 개별 삭제 함수
- * @param {number} detailsNo - FILES_DETAILS 테이블의 PK
- * @param {HTMLElement} btn - 클릭된 버튼 요소
- */
-async function deleteIndividualFile(detailsNo, btn) {
-    if (!confirm("이 파일을 서버에서 영구적으로 삭제하시겠습니까?\n삭제 후 복구할 수 없습니다.")) return;
-
-    const csrf = getCsrf();
-    try {
-        const res = await fetch(`/api/files/details/${detailsNo}`, {
-            method: 'DELETE',
-            headers: { 
-                [csrf.header]: csrf.token 
-            }
-        });
-
-        if (res.ok) {
-            alert("파일이 삭제되었습니다.");
-            // 성공 시 해당 리스트 아이템(li)을 화면에서 제거
-            const listItem = btn.closest('li');
-            listItem.style.transition = '0.3s';
-            listItem.style.opacity = '0';
-            setTimeout(() => listItem.remove(), 300);
-        } else {
-            const errorMsg = await res.text();
-            alert("파일 삭제 실패: " + errorMsg);
-        }
-    } catch (error) {
-        console.error("File delete error:", error);
-        alert("파일 삭제 요청 중 네트워크 오류가 발생했습니다.");
-    }
-}
 document.getElementById('noticeForm').onsubmit = async function(e) {
     e.preventDefault();
     const id = document.getElementById('noticeId').value;
@@ -543,31 +556,48 @@ document.getElementById('noticeForm').onsubmit = async function(e) {
         alert("네트워크 오류가 발생했습니다.");
     }
 };
-
+/**
+ * 파일 개별 삭제 함수 (통합 버전)
+ */
 async function deleteIndividualFile(detailsNo, btn) {
-    if (!confirm("파일을 삭제하시겠습니까?")) return;
+    if (!confirm("이 파일을 서버에서 영구적으로 삭제하시겠습니까?\n삭제 후 복구할 수 없습니다.")) return;
 
     const csrf = getCsrf();
     const headers = {};
+    
+    // CSRF 보안 체크
     if (csrf.header && csrf.token) {
-        headers[csrf.header] = csrf.token; // 여기서 Invalid name 에러 방지됨
+        headers[csrf.header] = csrf.token;
+    } else {
+        console.error("CSRF 토큰을 찾을 수 없습니다.");
+        return;
     }
 
     try {
-        // 경로를 위 컨트롤러와 맞춥니다.
+        // 경로 확인: 현재 RestController 설정에 맞춤
         const res = await fetch(`/api/notices/files/${detailsNo}`, {
             method: 'DELETE',
             headers: headers
         });
 
         if (res.ok) {
-            btn.closest('li').remove();
+            alert("파일이 삭제되었습니다.");
+            // UI에서 해당 파일 리스트만 삭제
+            const listItem = btn.closest('li');
+            if (listItem) {
+                listItem.style.transition = '0.3s';
+                listItem.style.opacity = '0';
+                setTimeout(() => listItem.remove(), 300);
+            }
         } else {
-            alert("삭제 실패");
+            const errorMsg = await res.text();
+            alert("파일 삭제 실패: " + (errorMsg || "권한이 없거나 서버 오류입니다."));
         }
-    } catch (e) { console.error(e); }
+    } catch (error) {
+        console.error("File delete error:", error);
+        alert("네트워크 오류가 발생했습니다.");
+    }
 }
-
 /* --- 4. 메모 (Memo) API --- */
 function showMemoForm() { document.getElementById('memoInputForm').classList.remove('hidden-item'); document.getElementById('noMemoMsg')?.classList.add('hidden-item'); document.getElementById('memoTextarea').focus(); }
 function hideMemoForm() { document.getElementById('memoInputForm').classList.add('hidden-item'); document.getElementById('memoTextarea').value = ''; }

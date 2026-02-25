@@ -1,69 +1,83 @@
 <!DOCTYPE html>
-<!--
-* CoreUI - Free Bootstrap Admin Template
-* @version v5.3.0
-* @link https://coreui.io/product/free-bootstrap-admin-template/
-* Copyright (c) 2025 creativeLabs Łukasz Holeczek
-* Licensed under MIT (https://github.com/coreui/coreui-free-bootstrap-admin-template/blob/main/LICENSE)
--->
-<html lang="ko" xmlns:th="https://www.thymeleaf.org/" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{common/layouts/default-layout}" layout:fragment="Content">
+<html lang="ko" 
+      xmlns:th="https://www.thymeleaf.org/" 
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security" 
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" 
+      layout:decorate="~{common/layouts/default-layout}" 
+      layout:fragment="Content">
 
 <head>
-<meta charset="UTF-8">
-<title>PMS 메인 테스트</title>
-<style>
-.info-box {
-	border: 1px solid #ccc;
-	padding: 15px;
-	margin-top: 10px;
-	border-radius: 5px;
-}
-
-.auth-btn {
-	background-color: #f0f0f0;
-	padding: 5px 10px;
-	text-decoration: none;
-	color: black;
-	border: 1px solid #000;
-}
-</style>
-</head>
+    <meta charset="UTF-8">
+    <title>PMS 메인 테스트</title>
+    </head>
 <body>
 
-	<h1>테스트 페이지</h1>
+<div class="container-lg">
+    <div class="row">
+        <div class="col-12">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <strong>테스트 페이지</strong> <span class="small ms-1">대시보드 미리보기</span>
+                </div>
+                
+                <div class="card-body">
+                    <div sec:authorize="isAuthenticated()">
+                        <div class="card border-start-4 border-start-info mb-4">
+                            <div class="card-body">
+                                <h3 class="card-title mb-3 text-primary">내 정보</h3>
+                                <div class="row">
+                                    <div class="col-sm-6">
+                                        <ul class="list-group list-group-flush">
+                                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                                <strong>아이디</strong>
+                                                <span class="badge bg-light text-dark" sec:authentication="name"></span>
+                                            </li>
+                                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                                <strong>실명</strong>
+                                                <span sec:authentication="principal.userEntity.username"></span>
+                                            </li>
+                                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                                <strong>이메일</strong>
+                                                <span sec:authentication="principal.userEntity.email"></span>
+                                            </li>
+                                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                                <strong>권한</strong>
+                                                <span class="text-success fw-bold" sec:authentication="principal.authorities"></span>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
 
-	<div sec:authorize="isAuthenticated()">
-		<div class="info-box">
-			<h3>내 정보</h3>
-			<ul>
-				<li><strong>아이디:</strong> <span sec:authentication="name"></span></li>
+                        <div class="d-grid gap-2 d-md-block mb-3">
+                            <button class="btn btn-primary" type="button" th:onclick="|location.href='@{/home}'|">
+                                <i class="cil-home me-2"></i>Home
+                            </button>
+                            <button class="btn btn-info text-white" type="button" th:onclick="|location.href='@{/issue/list}'|">
+                                <i class="cil-list me-2"></i>Issue
+                            </button>
+                            <button class="btn btn-secondary" type="button" th:onclick="|location.href='@{/settings/}'|">
+                                <i class="cil-settings me-2"></i>Settings
+                            </button>
+                            
+                            <span sec:authorize="hasRole('ROLE_ADMIN')">
+                                <button class="btn btn-warning" type="button" th:onclick="|location.href='@{/user/new}'|">
+                                    <i class="cil-user-follow me-2"></i>회원 등록 (Admin)
+                                </button>
+                            </span>
+                        </div>
 
-				<li><strong>실명:</strong> <span sec:authentication="principal.userEntity.username"></span></li>
-				<li><strong>이메일:</strong> <span sec:authentication="principal.userEntity.email"></span></li>
-				<li><strong>권한:</strong> <span sec:authentication="principal.authorities"></span></li>
-			</ul>
-		</div>
-		<br>
-		<div>
-			<button th:onclick="|location.href='@{/home}'|">Home</button>
-		</div>
-		<br>
-		<div>
-			<button th:onclick="|location.href='@{/issue/list}'|">Issue</button>
-		</div>
-		<br>
-		<div>
-			<button th:onclick="|location.href='@{/settings/}'|">Settings</button>
-		</div>
-		<br>
-		<div sec:authorize="hasRole('ROLE_ADMIN')">
-			<button th:onclick="|location.href='@{/user/new}'|">회원 등록(Admin 전용)</button>
-		</div>
-		<br>
-		<form th:action="@{/user/logout}" method="post">
-			<button type="submit">로그아웃</button>
-		</form>
-	</div>
+                        <hr>
+
+                        <div class="d-flex justify-content-end">
+                            <form th:action="@{/user/logout}" method="post">
+                                <button class="btn btn-outline-danger" type="submit">
+                                    <i class="cil-account-logout me-2"></i>로그아웃
+                                </button>
+                            </form>
+                        </div>
+                    </div> </div> </div> </div> </div> </div>
 
 </body>
 </html>
