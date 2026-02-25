@@ -198,7 +198,12 @@ public class ProjectController {
         issueDto.setProjectCode(projectCode);
 
         // 2. 파일 처리 로직 (List<MultipartFile> files 등 DTO에 파일 필드가 있다면 여기서 처리)
-		Integer jobNo = issueService.addIssue(issueDto, files);
+		try {
+			Integer jobNo = issueService.addIssue(issueDto, files);
+			log.debug("jobNo check{}", jobNo);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 
         // 3. ★ 새 ID(jobNo)가 담긴 DTO 객체를 그대로 반환! (이게 프론트엔드의 savedTask로 들어갑니다)
         return issueDto;

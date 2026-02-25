@@ -154,11 +154,17 @@
             // [추가] 숨김 필드(Hidden) 자동 세팅
             let rawParentId = String(currentTaskInfo.parent);
             if (rawParentId.startsWith("p")) {
+                // 1. 프로젝트(p)의 '+' 버튼을 누른 경우
                 hiddenProjectNo.value = rawParentId.replace("p", "");
                 hiddenParentJobNo.value = ""; 
             } else if (rawParentId.startsWith("j")) {
+                // 2. 일감(j)의 '+' 버튼을 누른 경우 (하위 일감)
                 hiddenParentJobNo.value = rawParentId.replace("j", "");
+                let parentTaskNode = gantt.getTask(rawParentId);
+                let pId = parentTaskNode.project_id || ""; 
+                hiddenProjectNo.value = pId.replace("p", ""); 
             } else {
+                // 3. 예외 상황
                 hiddenProjectNo.value = projectCode;
             }
 
@@ -222,7 +228,7 @@
             })
             .then(response => {
                 if(!response.ok) throw new Error("서버 응답 오류");
-                return response.json(); // 성공 시 서버가 발급한 ID가 담긴 JSON 반환을 기대함
+                return response.json(); 
             })
             .then(savedTask => {
                 // 저장 성공: $new 플래그 지워서 모달 닫힐 때 삭제되지 않게 방어
@@ -232,20 +238,52 @@
                 // 임시 바 지우기
                 gantt.deleteTask(currentTaskInfo.id);
 
-                // ★ 핵심: 서버에서 온 DTO(IssueDto)를 간트 차트 규격으로 변환!
+                // 날짜 파싱 및 Duration(기간) 계산
+                const startDateObj = new Date(savedTask.startDate);
+                const endDateObj = new Date(savedTask.endDate);
+                
+                // 시작일과 종료일의 차이를 일(Day) 단위로 계산 (+1을 해야 당일치기도 1일로 계산됨)
+                const calcDuration = Math.max(1, Math.round((endDateObj - startDateObj) / (1000 * 60 * 60 * 24)) + 1);
+                
+                // 간트 차트가 읽을 수 있는 포맷("DD-MM-YYYY")으로 변환하는 함수
+                const formatFunc = gantt.date.date_to_str("%d-%m-%Y");
+
+                // Select Box에서 Text 추출
+                const managerSelect = document.querySelector('select[name="managerId"]');
+                const managerName = managerSelect.options[managerSelect.selectedIndex].text;
+
+                const prioritySelect = document.querySelector('select[name="priority"]');
+                const priorityName = prioritySelect.options[prioritySelect.selectedIndex].text;
+
+                // 차트용 데이터 조립
                 let newGanttTask = {
-                    id: "j" + savedTask.jobNo,        // 간트 차트의 일감 고유 ID
-                    text: savedTask.title,            // 화면에 보일 작업명 (title -> text)
-                    start_date: savedTask.startDate,  // 서버 포맷에 따라 Date 객체나 스트링으로 가공 필요할 수 있음
-                    duration: 1,                      // 기본 기간
-                    parent: currentTaskInfo.parent,   // 기존에 가지고 있던 부모 ID 유지
-                    workerName: savedTask.username,   // 담당자 이름 매핑
-                    jobPriority: savedTask.commonName // 우선순위 매핑
-                };
+                        id: "j" + savedTask.jobNo,        
+                        text: savedTask.title,            
+                        start_date: formatFunc(startDateObj), 
+                        duration: calcDuration,               
+                        parent: currentTaskInfo.parent,   
+                        workerName: managerName,              
+                        jobPriority: priorityName,
+                        // loadGanttData와 동일한 일감 색상 강제 지정
+                        color: "#3db9d3",
+                        progressColor: "#2a8e9d",
+                        open: true // 추가된 일감의 하위 트리가 있다면 기본으로 열어두기
+                    };
 
-                // 변환된 데이터로 차트에 추가
+                    // 조립된 데이터로 차트에 추가
+                    gantt.addTask(newGanttTask, newGanttTask.parent);
+
+                    // Link 추가
+                    if (newGanttTask.parent && String(newGanttTask.parent).startsWith("j")) {
+	                    gantt.addLink({
+	                        id: "link_" + newGanttTask.id, // 겹치지 않는 임의의 링크 ID
+	                        source: newGanttTask.parent,   // 상위 일감(j~)에서 선이 시작됨
+	                        target: newGanttTask.id,       // 방금 만든 하위 일감(j~)으로 이어짐
+	                        type: "1"                      // Finish-to-Start (끝남과 동시에 시작) 타입
+	                    });
+	                }
+                // 조립된 데이터로 차트에 추가
                 gantt.addTask(newGanttTask, newGanttTask.parent);
-
                 gantt.message({text: "일감이 등록되었습니다.", type: "success"});
             })
             .catch(error => {
