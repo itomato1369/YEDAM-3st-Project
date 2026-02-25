@@ -134,6 +134,14 @@
             return true; 
         });
 
+        // 프로젝트는 수정 안 할거니까 부트스트랩 모달 안 띄우게 막기 
+        gantt.attachEvent("onTaskDblClick", function(id, e){
+            // ID가 'p'로 시작하면 프로젝트이므로 차단
+            if (String(id).startsWith("p")) {
+                return false; // false를 반환하면 기본 모달(Lightbox)이 열리지 않습니다.
+            }
+            return true; // 그 외의 일반 일감('j' 등)은 정상적으로 열리도록 허용
+        });
         // 2. 기본 모달 대신 커스텀 부트스트랩 모달 띄우기
         gantt.attachEvent("onBeforeLightbox", function(id) {
             currentTaskInfo = gantt.getTask(id);
