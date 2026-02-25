@@ -49,7 +49,8 @@ public class FilesDeleteService {
 
 		// 모든 디테일 삭제 됐으면 마스터 삭제
 		Integer filesNo = fileDetail.getFilesEntity().getFilesNo();
-		if (!filesDetailsRepository.existsByFilesEntity_FilesNo(filesNo)) {
+		List<FilesDetailsEntity> detailsList =filesDetailsRepository.findByFilesEntity_FilesNo(filesNo); 
+		if (detailsList.isEmpty()) {
 			fileRepository.deleteById(filesNo);
 		}
 	}

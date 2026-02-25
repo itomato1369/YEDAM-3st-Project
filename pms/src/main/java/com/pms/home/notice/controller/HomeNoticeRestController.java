@@ -128,10 +128,8 @@ public class HomeNoticeRestController {
     public ResponseEntity<?> deleteFileIndividual(
             @PathVariable Integer detailsNo,
             @AuthenticationPrincipal UserDetails user) { // 유저 정보 추가
-        try {
-            // [보안 권장] 서비스 내부에서 본인 확인 로직을 추가하는 것이 가장 좋습니다.
-            // 예: filesDeleteService.deleteFileDetailChecked(detailsNo, user.getUsername());
-            
+    	System.out.println("🚩 요청 도달 성공! 삭제할 번호: " + detailsNo); // 이 로그가 찍히는지 확인!
+        try {            
             filesDeleteService.deleteFileDetail(detailsNo); 
             return ResponseEntity.ok().build();
         } catch (RuntimeException e) {
