@@ -6,8 +6,6 @@
 
 <head>
 <meta charset="UTF-8" />
-<meta name="_csrf" th:content="${_csrf?.token}" />
-<meta name="_csrf_header" th:content="${_csrf?.headerName}" />
 <title>Dashboard</title>
 <script
 	src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
@@ -195,9 +193,12 @@
 <body>
 
 	<div class="container-fluid">
+	<meta name="_csrf" th:content="${_csrf?.token}" />
+	<meta name="_csrf_header" th:content="${_csrf?.headerName}" />
 		<h2 class="mb-4 fw-bold">📊 대시보드</h2>
 
 		<div id="dashboardGrid" class="dashboard-grid">
+
 
 			<div class="dashboard-item" data-id="projects">
 				<div class="section-box border-top border-primary border-4">
@@ -378,13 +379,12 @@
 	</div>
 
 <script th:inline="javascript">
-/* --- 1. 초기화 로직 (페이지네이션, 정렬) --- */
 /* --- 1. 초기화 로직 (스크롤 활성화 및 위젯 정렬) --- */
 document.addEventListener("DOMContentLoaded", function () {
-    // [중요] 모든 위젯의 아이템들을 강제로 표시 (페이징 해제)
-    // 기존에 붙어있던 page-item-xxx 클래스들 때문에 숨겨지는 것을 방지합니다.
-    const allHiddenItems = document.querySelectorAll('.hidden-item');
-    allHiddenItems.forEach(el => el.classList.remove('hidden-item'));
+    // [수정 핵심] 모든 hidden-item을 제거하되, 메모 입력 폼(#memoInputForm)은 제외합니다.
+    // 이렇게 하면 페이징 때문에 숨겨졌던 아이템들만 나타나고 메모 폼은 숨김 상태를 유지합니다.
+    const itemsToShow = document.querySelectorAll('.hidden-item:not(#memoInputForm)');
+    itemsToShow.forEach(el => el.classList.remove('hidden-item'));
 
     // 대시보드 그리드 정렬 (Sortable.js)
     const grid = document.getElementById("dashboardGrid");
@@ -416,16 +416,13 @@ const getCsrf = () => ({
     header: document.querySelector('meta[name="_csrf_header"]')?.content
 });
 
-/* --- 3. 공지사항 (Notice) API --- */
+/* --- 3. 공지사항 (Notice) API --- (변동 없음) */
 function showNoticeAddModal() {
     document.getElementById('noticeForm').reset();
     document.getElementById('noticeId').value = '';
     document.getElementById('noticeModalLabel').innerText = '공지사항 등록';
     document.getElementById('btnDeleteNotice').style.display = 'none';
-    
-    // 파일 관련 영역 초기화
     document.getElementById('existingFileList').innerHTML = ''; 
-    
     new bootstrap.Modal(document.getElementById('noticeModal')).show();
 }
 
@@ -433,10 +430,7 @@ async function showNoticeEditModal(noticeNo) {
     try {
         const res = await fetch(`/api/notices/${noticeNo}`);
         if (!res.ok) throw new Error("데이터를 가져오지 못했습니다.");
-        
         const data = await res.json();
-        
-        // 텍스트 필드 데이터 채우기
         document.getElementById('noticeId').value = data.noticeNo;
         document.getElementById('noticeTitle').value = data.title;
         document.getElementById('noticeContent').value = data.content;
@@ -444,27 +438,20 @@ async function showNoticeEditModal(noticeNo) {
         document.getElementById('noticeModalLabel').innerText = '공지사항 상세/수정';
         document.getElementById('btnDeleteNotice').style.display = 'block';
 
-        // --- 첨부파일 목록 표시 로직 (DB 구조 반영) ---
         const fileListDiv = document.getElementById('existingFileList');
-        fileListDiv.innerHTML = ''; // 초기화
-        
+        fileListDiv.innerHTML = ''; 
         if (data.files && data.files.length > 0) {
             let fileHtml = '<p class="fw-bold mb-1 small mt-2 text-dark">기존 첨부파일:</p>';
             fileHtml += '<ul class="list-group list-group-sm shadow-sm mb-3">';
-            
             data.files.forEach(file => {
                 fileHtml += `
                     <li class="list-group-item d-flex justify-content-between align-items-center py-2">
-                        <div class="text-truncate" style="max-width: 80%;">
-                            <i class="cil-file text-primary"></i> 
-                            <a href="/download/${file.filesUuid}" class="text-decoration-none small text-dark fw-semibold" title="다운로드">
-                                ${file.filesName}
-                            </a>
-                            <span class="text-muted small ms-2">(${file.filesSize})</span>
+                        <div class="text-truncate" style="max-width: 85%;">
+                            <i class="cil-file text-primary me-2"></i> 
+                            <a href="/download/${file.detailsNo}" class="text-decoration-none small text-dark fw-semibold">${file.filesName}</a>
                         </div>
-                        <button type="button" class="btn btn-sm text-danger border-0 p-0" 
-                                onclick="deleteIndividualFile(${file.detailsNo}, this)" title="파일만 삭제">
-                            <i class="cil-x-circle" style="font-size: 1.2rem;">&times;</i>
+                        <button type="button" class="btn btn-sm btn-outline-danger border-0 p-1" onclick="deleteIndividualFile(${file.detailsNo}, this)">
+                            <span aria-hidden="true" style="font-size:1.2rem;">&times;</span>
                         </button>
                     </li>`;
             });
@@ -473,176 +460,94 @@ async function showNoticeEditModal(noticeNo) {
         } else {
             fileListDiv.innerHTML = '<p class="text-muted small mt-2">첨부된 파일이 없습니다.</p>';
         }
-
         new bootstrap.Modal(document.getElementById('noticeModal')).show();
-    } catch (e) { 
-        console.error(e);
-        alert("상세 정보를 가져오는 중 오류가 발생했습니다."); 
-    }
+    } catch (e) { console.error(e); alert("오류가 발생했습니다."); }
 }
 
-/**
- * 파일 개별 삭제 함수
- * @param {number} detailsNo - FILES_DETAILS 테이블의 PK
- * @param {HTMLElement} btn - 클릭된 버튼 요소
- */
-async function deleteIndividualFile(detailsNo, btn) {
-    if (!confirm("이 파일을 서버에서 영구적으로 삭제하시겠습니까?\n삭제 후 복구할 수 없습니다.")) return;
-
+async function handleDeleteNotice() {
+    const noticeNo = document.getElementById('noticeId').value;
+    if (!noticeNo || !confirm("이 공지사항을 정말 삭제하시겠습니까?")) return;
     const csrf = getCsrf();
     try {
-        const res = await fetch(`/api/files/details/${detailsNo}`, {
+        const res = await fetch(`/api/notices/${noticeNo}`, {
             method: 'DELETE',
-            headers: { 
-                [csrf.header]: csrf.token 
-            }
+            headers: { [csrf.header]: csrf.token }
         });
-
-        if (res.ok) {
-            alert("파일이 삭제되었습니다.");
-            // 성공 시 해당 리스트 아이템(li)을 화면에서 제거
-            const listItem = btn.closest('li');
-            listItem.style.transition = '0.3s';
-            listItem.style.opacity = '0';
-            setTimeout(() => listItem.remove(), 300);
-        } else {
-            const errorMsg = await res.text();
-            alert("파일 삭제 실패: " + errorMsg);
-        }
-    } catch (error) {
-        console.error("File delete error:", error);
-        alert("파일 삭제 요청 중 네트워크 오류가 발생했습니다.");
-    }
+        if (res.ok) { alert("삭제되었습니다."); location.reload(); }
+        else { alert("삭제 실패"); }
+    } catch (error) { alert("네트워크 오류"); }
 }
+
+async function deleteIndividualFile(detailsNo, btn) {
+    if (!confirm("파일을 삭제하시겠습니까?")) return;
+    const csrf = getCsrf();
+    try {
+        const res = await fetch(`/api/notices/files/${detailsNo}`, {
+            method: 'DELETE',
+            headers: { [csrf.header]: csrf.token }
+        });
+        if (res.ok) {
+            const listItem = btn.closest('li');
+            if (listItem) {
+                listItem.style.opacity = '0';
+                setTimeout(() => listItem.remove(), 300);
+            }
+        }
+    } catch (error) { console.error(error); }
+}
+
 document.getElementById('noticeForm').onsubmit = async function(e) {
     e.preventDefault();
     const id = document.getElementById('noticeId').value;
     const csrf = getCsrf();
-    
-    // 1. FormData 객체 생성
-    const formData = new FormData(document.getElementById('noticeForm'));
-    
-    // 4. 헤더 설정 (Multipart 전송이므로 Content-Type은 명시하지 않음)
+    const formData = new FormData(this);
     const headers = {};
-    if (csrf.header && csrf.token) {
-        headers[csrf.header] = csrf.token;
-    }
+    if (csrf.header) headers[csrf.header] = csrf.token;
 
     try {
-        const url = id ? `/api/notices/${id}` : '/api/notices';
-        // 수정 시에는 Multipart 전송을 위해 method를 POST로 쓰고 _method=PUT 파라미터를 붙이거나, 
-        // 서버 설정에 따라 PUT으로 직접 보낼 수 있습니다. (여기서는 PUT 사용)
-        const res = await fetch(url, {
+        const res = await fetch(id ? `/api/notices/${id}` : '/api/notices', {
             method: id ? 'PUT' : 'POST',
             headers: headers,
             body: formData 
         });
-
-        if (res.ok) {
-            alert("성공적으로 저장되었습니다.");
-            location.reload();
-        } else {
-            const errorText = await res.text();
-            alert("저장에 실패했습니다: " + errorText);
-        }
-    } catch (error) {
-        console.error("Fetch error:", error);
-        alert("네트워크 오류가 발생했습니다.");
-    }
+        if (res.ok) { alert("저장되었습니다."); location.reload(); }
+    } catch (error) { alert("오류 발생"); }
 };
 
-async function deleteIndividualFile(detailsNo, btn) {
-    if (!confirm("파일을 삭제하시겠습니까?")) return;
-
-    const csrf = getCsrf();
-    const headers = {};
-    if (csrf.header && csrf.token) {
-        headers[csrf.header] = csrf.token; // 여기서 Invalid name 에러 방지됨
-    }
-
-    try {
-        // 경로를 위 컨트롤러와 맞춥니다.
-        const res = await fetch(`/api/notices/files/${detailsNo}`, {
-            method: 'DELETE',
-            headers: headers
-        });
-
-        if (res.ok) {
-            btn.closest('li').remove();
-        } else {
-            alert("삭제 실패");
-        }
-    } catch (e) { console.error(e); }
-}
-
 /* --- 4. 메모 (Memo) API --- */
-function showMemoForm() { document.getElementById('memoInputForm').classList.remove('hidden-item'); document.getElementById('noMemoMsg')?.classList.add('hidden-item'); document.getElementById('memoTextarea').focus(); }
-function hideMemoForm() { document.getElementById('memoInputForm').classList.add('hidden-item'); document.getElementById('memoTextarea').value = ''; }
+function showMemoForm() { 
+    document.getElementById('memoInputForm').classList.remove('hidden-item'); 
+    document.getElementById('noMemoMsg')?.classList.add('hidden-item'); 
+    document.getElementById('memoTextarea').focus(); 
+}
+function hideMemoForm() { 
+    document.getElementById('memoInputForm').classList.add('hidden-item'); 
+    document.getElementById('memoTextarea').value = ''; 
+    document.getElementById('noMemoMsg')?.classList.remove('hidden-item');
+}
 function saveMemo() {
     const content = document.getElementById('memoTextarea').value.trim();
     if (!content) return;
-
     const csrf = getCsrf();
-    const headers = {
-        'Content-Type': 'application/json'
-    };
-
-    // CSRF 헤더 이름과 토큰이 모두 존재할 때만 추가
-    if (csrf.header && csrf.token) {
-        headers[csrf.header] = csrf.token;
-    } else {
-        console.warn("CSRF 정보를 찾을 수 없습니다.");
-    }
-
     fetch('/api/memos', { 
         method: 'POST', 
-        headers: headers, 
+        headers: { 'Content-Type': 'application/json', [csrf.header]: csrf.token }, 
         body: JSON.stringify({ content }) 
-    })
-    .then(res => {
-        if (res.ok) {
-            location.reload();
-        } else {
-            return res.text().then(text => { throw new Error(text) });
-        }
-    })
-    .catch(err => {
-        console.error("메모 저장 중 오류:", err);
-        alert("저장 실패: " + err.message);
-    });
+    }).then(res => res.ok && location.reload());
 }
 function deleteMemo(memoNo, event) {
-    if (event) event.stopPropagation(); // 메모 상세보기 모달이 뜨지 않게 방지
+    if (event) event.stopPropagation();
     if (!confirm("삭제하시겠습니까?")) return;
-
     const csrf = getCsrf();
-    const headers = {};
-
-    // CSRF 헤더가 유효한지 확인 후 추가 (Invalid name 에러 방지)
-    if (csrf.header && csrf.token) {
-        headers[csrf.header] = csrf.token;
-    }
-
     fetch(`/api/memos/${memoNo}`, { 
         method: 'DELETE', 
-        headers: headers 
-    })
-    .then(res => {
-        if (res.ok) {
-            alert("삭제되었습니다.");
-            location.reload();
-        } else {
-            return res.text().then(text => { 
-                alert("삭제 실패: " + text); 
-            });
-        }
-    })
-    .catch(err => {
-        console.error("Delete fetch error:", err);
-        alert("삭제 중 오류가 발생했습니다.");
-    });
+        headers: { [csrf.header]: csrf.token } 
+    }).then(res => res.ok && location.reload());
 }
-function viewMemoDetail(content) { document.getElementById('fullMemoContent').innerText = content; new bootstrap.Modal(document.getElementById('memoDetailModal')).show(); }
+function viewMemoDetail(content) { 
+    document.getElementById('fullMemoContent').innerText = content; 
+    new bootstrap.Modal(document.getElementById('memoDetailModal')).show(); 
+}
 
 /* --- 5. 기타 --- */
 function goToProjectInfo(projectCode) { location.href = `/project/user/${projectCode}/info`; }

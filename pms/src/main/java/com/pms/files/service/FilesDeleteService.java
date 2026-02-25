@@ -14,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
+@org.springframework.transaction.annotation.Transactional
 public class FilesDeleteService {
 	private final FilesDetailsRepository filesDetailsRepository;
 	private final FilesRepository fileRepository;

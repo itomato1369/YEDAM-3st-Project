@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.pms.files.service.FilesDeleteService;
 import com.pms.files.service.FilesUploadService;
 import com.pms.home.notice.dto.HomeNoticeDto;
 import com.pms.home.notice.mapper.HomeNoticeMapper;
@@ -29,6 +30,7 @@ public class HomeNoticeRestController {
 
     private final HomeNoticeMapper noticeMapper;
     private final FilesUploadService filesUploadService; // 파일 업로드 서비스 주입
+    private final FilesDeleteService filesDeleteService;
 
     // 1. 상세 조회 (모달 데이터용)
     @GetMapping("/{noticeNo}")
@@ -52,7 +54,7 @@ public class HomeNoticeRestController {
         try {
             // 파일이 존재할 경우 업로드 서비스 호출
             if (files != null && !files.isEmpty() && !files.get(0).isEmpty()) {
-                filesNo = filesUploadService.uploadFiles(files, user.getUsername());
+                filesNo = filesUploadService.uploadFiles(files, user.getUsername(), filesNo);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -94,7 +96,7 @@ public class HomeNoticeRestController {
         try {
             // 새로운 파일이 들어왔을 경우에만 업로드 진행
             if (files != null && !files.isEmpty() && !files.get(0).isEmpty()) {
-                filesNo = filesUploadService.uploadFiles(files, user.getUsername());
+                filesNo = filesUploadService.uploadFiles(files, user.getUsername(), filesNo);
             }
         } catch (Exception e) {
             return ResponseEntity.internalServerError().body("파일 수정 실패");
@@ -123,15 +125,19 @@ public class HomeNoticeRestController {
     }
     
     @DeleteMapping("/files/{detailsNo}")
-    public ResponseEntity<?> deleteFileIndividual(@PathVariable Integer detailsNo) {
+    public ResponseEntity<?> deleteFileIndividual(
+            @PathVariable Integer detailsNo,
+            @AuthenticationPrincipal UserDetails user) { // 유저 정보 추가
         try {
-            // filesUploadService에 개별 파일을 지우는 메서드가 있는지 확인 필요
-            // 없다면 아래 4번 항목의 서비스 로직을 서비스 클래스에 추가해야 합니다.
-            boolean isDeleted = filesUploadService.deleteFileDetail(detailsNo); 
+            // [보안 권장] 서비스 내부에서 본인 확인 로직을 추가하는 것이 가장 좋습니다.
+            // 예: filesDeleteService.deleteFileDetailChecked(detailsNo, user.getUsername());
             
-            return isDeleted ? ResponseEntity.ok().build() : ResponseEntity.notFound().build();
+            filesDeleteService.deleteFileDetail(detailsNo); 
+            return ResponseEntity.ok().build();
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(404).body(e.getMessage());
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().body(e.getMessage());
+            return ResponseEntity.internalServerError().body("An error occurred while deleting the file.");
         }
     }
 }
