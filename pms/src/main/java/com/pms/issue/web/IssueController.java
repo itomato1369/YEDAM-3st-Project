@@ -184,6 +184,7 @@ public class IssueController {
 		model.addAttribute("userId", user.getUserId());
 		model.addAttribute("projectCode", projectCode);
 		model.addAttribute("project", projectService.findInfoByCode(projectCode));
+		// 현재 등록된 파일 불러오기
 		if (issue.getFilesNo() != null)
 			model.addAttribute("fileList", fileListService.findFileList(issue.getFilesNo()));
 		else 
@@ -229,9 +230,10 @@ public class IssueController {
 		model.addAttribute("typeList", issueService.getTypeList(null));
 		model.addAttribute("priorityList", issueService.getPriorityList(null));
 		model.addAttribute("historyList", issueService.getHistoryList(issueDto));
-		model.addAttribute("issue", issueService.findIssue(jobNo));
+		model.addAttribute("issue", issue);
 		model.addAttribute("userId", user.getUserId());
 		model.addAttribute("projectCode", projectCode);
+		// 현재 등록된 파일 목록 보내기
 		if (issue.getFilesNo() != null)
 			model.addAttribute("fileList", fileListService.findFileList(issue.getFilesNo()));
 		else 

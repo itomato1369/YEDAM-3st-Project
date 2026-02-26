@@ -46,7 +46,7 @@
 
 			<!-- 검색조건 추가 버튼 + 조회 버튼 -->
 						<div class="mb-3 d-flex align-items-center justify-content-end gap-2">
-			<!-- 내 소요시간만 보기 -->
+			<!-- 내 일감만 보기 toggleMyIssue(this) 함수 -->
 				<div class="form-check form-switch mb-0">
 					<input class="form-check-input"
 						 type="checkbox" 
@@ -54,7 +54,7 @@
 						 name="showOnlyMe" 
 						 value="Y" 
 						 th:checked="${showOnlyMe == 'Y'}"
-						 onchange="this.form.submit()"
+						 onchange="toggleMyIssue(this)"
 						 autocomplete="off" />
 						<!-- checked는 서버에 넘어온 데이터에 따라 체크박스 체크하느냐 마느냐
 						그리고 내 소요시간만 보기 누르면 바로 동적쿼리 작동 -->

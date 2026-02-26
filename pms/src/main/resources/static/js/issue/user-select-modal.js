@@ -17,8 +17,11 @@ const managerName = document.getElementById("managerName");
 
 userModal.querySelectorAll(".user-item").forEach((item) => {
   item.addEventListener("click", function () {
-    managerName.value = this.textContent.trim();
-    managerInput.value = this.dataset.id;
+	const selectedName = this.querySelector('span').textContent.trim();
+	const selectedId = this.getAttribute("data-id");
+	 //  일감 수정 페이지의 input에 값 대입
+	     if (managerName) managerName.value = selectedName;
+	     if (managerInput) managerInput.value = selectedId;
     // 이미 열려있는 modal 인스턴스를 가져와서 닫는
     // Bootstrap 공식 방식
     const modal = bootstrap.Modal.getInstance(userModal);

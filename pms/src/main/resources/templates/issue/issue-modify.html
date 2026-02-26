@@ -47,7 +47,7 @@
 				<!-- 수정사유 작성 comment는 history 테이블에 값 입력-->
 				<div class="col-md-6">
 					<label class="form-label">수정 사유 작성</label> 
-					<input type="text" name="comment" class="form-control mt-2" />
+					<input type="text" name="changeComment" class="form-control mt-2" />
 						<div class="form-text text-danger mt-1" style="font-size: 0.85rem;">
         					<i class="bi bi-exclamation-circle me-1"></i>수정 사유는 필수 입력 사항입니다.
     					</div>
@@ -108,9 +108,14 @@
 					<input type="text" 
 							  class="form-control"
 							  id="managerName"
-							  th:field="*{userId}" 
+							  th:value="${issue.username}" 
 							  readonly /> 
-					<input type="hidden" name="managerId" id="managerId" />
+					<input type="hidden" 
+							   name="managerId" 
+							   id="managerId" 
+							   th:value="${issue.managerId}"/>
+					<input type="hidden" 
+							   name="userId" />
 				</div>
 			</div>
 
@@ -152,23 +157,30 @@
 				</div>
 			</div>
 
-			<div class="row mb-3 align-items-center">
+			<div class="row mb-3 align-items-start">
 				<!-- 첨부파일 -->
 				<div class="col-md-6">
 					<label for="formFile" class="form-label">첨부파일</label> 
 					<input class="form-control" type="file" id="files" name="files" multiple />
 					<!-- 여러개 선택시 첨부파일 이름이 표시 -->
-					<div class="col-md-6">
-						<label>첨부파일 다운로드</label>
+					<div class="border rounded p-2 bg-light">
+						<div class="form-text fw-bold mb-2 pb-1 border-bottom">
+           					 <i class="bi bi-files me-1"></i>현재 등록된 첨부파일
+        				</div>
 						<ul id="fileList" class="mt-2 list-group">
-							<li th:each="file : ${fileList}" th:text="${file.filesName}"
-								th:data-no="${file.detailsNo}"></li>
-						</ul>
+							<li th:each="file : ${fileList}"
+								 th:data-no="${file.detailsNo}"
+								 class="list-group-item d-flex justify-content-between align-items-center">
+								 <span th:text="${file.filesName}">파일명</span>
+								 	<!-- 첨부파일 삭제 버튼-->
+								 <button type="button" class="btn btn-sm btn-danger file-delete-btn">X</button>					
+							</li>							
+						</ul>		
 					</div>
 				</div>
 
 				<!-- 공개범위 -->
-				<div class="col-md-5 d-flex flex-column justify-content-center">
+				<div class="col-md-6 d-flex flex-column justify-content-center">
 					<label class="form-label mb-2">공개범위</label>
 							<!-- 전체 공개 -->
 					<div class="d-flex gap-4">

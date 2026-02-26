@@ -60,7 +60,7 @@
 			<!-- 담당자 -->
 			<div class="col-md-6">
 				<label class="form-label fw-bold">담당자</label>
-				<div class="view-control shadow-sm" th:text="${issue.managerId}"></div>
+				<div class="view-control shadow-sm" th:text="${issue.username}"></div>
 			</div>
 		</div>
 
@@ -96,13 +96,23 @@
 		<div class="row mb-3 align-items-center">
 			<!-- 첨부파일 -->
 			<div class="col-md-6">
-				<label for="formFile" class="form-label">첨부파일</label> <input
-					class="form-control" type="file" id="files" name="files" multiple />
-				<!-- 여러개 선택시 첨부파일 이름이 표시 -->
-				<ul id="fileList" class="mt-2 list-group">
-					<li th:each="file : ${fileList}" th:text="${file.filesName}"
-						th:data-no="${file.detailsNo}"></li>
-				</ul>
+				<label class="form-label">첨부파일</label> 
+				<div class="border rounded p-3 bg-light shadow-sm">
+					<div th:if="${#lists.isEmpty(fileList)}" 
+							class="text-muted small py-2 text-center">
+							첨부된 파일이 없습니다
+					</div>
+					<ul id="fileList" class="list-group list-group-flush m-0">
+						<li th:each="file : ${fileList}"
+						class="list-group-item d-flex justify-content-between align-items-center bg-transparent border-0 px-0 py-1">
+							<div class="d-flex align-items-center">
+								<a th:href="@{/download/{no}(no=${file.detailsNo})}"
+									th:text="${file.filesName}"
+									class="text-decoration-none text-dark small fw-bold-hover"></a>
+							</div>							
+						</li>
+					</ul>			
+				</div>
 			</div>
 
 			<!-- 공개범위 -->
@@ -164,7 +174,7 @@
 						<tbody>
 							<tr th:each="history : ${historyList}">
 								<td th:text="${history.username}"></td>
-								<td th:text="${history.comment}"></td>
+								<td th:text="${history.changeComment}"></td>
 								<td th:text="${#dates.format(history.historyDate, 'yyyy-MM-dd')}"></td>
 							</tr>
 							<!-- 수정 이력이 없으면 -->

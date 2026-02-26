@@ -34,13 +34,13 @@
         <if test="title != null">
           AND j.title LIKE '%' || #{title} || '%'
         </if>
-        <if test="managerId != null">
-          AND j.manager_id = #{managerId}
+        <if test="userId != null">
+          AND j.manager_id = #{userId}
         </if>
-        <if test="jobStatusNo !=null and jobStatus != '0' and jobStatus !=''">
+        <if test="jobStatusNo !=null and jobStatusNo != '0' and jobStatusNo !=''">
           AND j.job_status_no = #{jobStatusNo}
         </if>
-        <if test="jobTypeNo != null and jobType != '0' and jobType != ''">
+        <if test="jobTypeNo != null and jobTypeNo != '0' and jobTypeNo != ''">
           AND j.job_type_no = #{jobTypeNo}
         </if>
         <if test="priority != null and priority !='0'">
@@ -114,7 +114,7 @@
 	<select id="selectHistoryList" resultType="IssueDto">
 	  SELECT
                  h.history_no
-               , h."COMMENT"
+               , h.change_comment AS changeComment
                , h.user_id
                , h.history_date
                , u.username
@@ -172,6 +172,7 @@
 		UPDATE JOB
 		SET PUBLIC_ROLE = #{publicRole},
 		TITLE = #{title},
+		MANAGER_ID = #{managerId},
 		CONTENT = #{content},
 		PRIORITY = #{priority},
 		START_DATE = #{startDate},
@@ -188,14 +189,14 @@
 	<insert id="insertIssueHistory" parameterType="IssueDto">
 		INSERT INTO HISTORY (
 		history_no
-		, "COMMENT"
+		, change_comment
 		, user_id
 		, history_date
 		, delete_date
 		, job_no
 		) VALUES (
 		HISTORY_SEQ.NEXTVAL
-		, #{comment}
+		, #{changeComment}
 		, #{userId}
 		, CURRENT_TIMESTAMP
 		, #{deleteDate}
@@ -223,11 +224,14 @@
 			    , j.job_status_no
 			    , jt.job_type
                 , js.job_status
+                , u.username
     FROM job j
     JOIN job_type jt
     ON j.job_type_no = jt.job_type_no
     JOIN job_status js
     ON j.job_status_no = js.job_status_no
+    JOIN users u
+    ON j.user_id = u.user_id
     WHERE job_no = #{jobNo}
 	</select>
 	

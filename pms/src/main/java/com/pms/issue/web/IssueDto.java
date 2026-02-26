@@ -48,7 +48,7 @@ public class IssueDto {
     
     // 히스토리
     private Integer historyNo;
-    private String comment;
+    private String changeComment;
     @DateTimeFormat(pattern = "yyyy-MM-dd")
 	private Date historyDate;
 	@DateTimeFormat(pattern = "yyyy-MM-dd")
