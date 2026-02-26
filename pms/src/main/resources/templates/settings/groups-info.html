@@ -2,7 +2,108 @@
 <html lang="ko" xmlns:th="https://www.thymeleaf.org"
 	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
 	layout:decorate="~{common/layouts/default-layout}">
+<head>
+<style>
+/* 1. 테마별 변수 설정 */
+:root {
+    --pms-card-bg: #ffffff;
+    --pms-header-bg: #f8f9fa; /* 라이트모드 헤더 */
+    --pms-text: #212529;
+    --pms-text-muted: #6c757d;
+    --pms-border: #dee2e6;
+    --pms-input-bg: #ffffff;
+}
 
+[data-coreui-theme="dark"] {
+    --pms-card-bg: #2a303d;
+    --pms-header-bg: #1d222b; /* 📍 카드/테이블 헤더를 아주 어둡게 */
+    --pms-text: #d8dbe0;
+    --pms-text-muted: #a5a9b1;
+    --pms-border: #3c434f;
+    --pms-input-bg: #1b1f28;
+}
+
+/* 📍 2. 카드 및 객체 헤더 강제 암전 (bg-light 무력화) */
+[data-coreui-theme="dark"] .card-header.bg-light,
+[data-coreui-theme="dark"] .modal-footer.bg-light,
+[data-coreui-theme="dark"] .table-light,
+[data-coreui-theme="dark"] .sticky-top.table-light {
+    background-color: var(--pms-header-bg) !important;
+    color: var(--pms-text) !important;
+    border-color: var(--pms-border) !important;
+}
+
+/* 📍 3. 테이블 가독성 (Sticky Header 포함) */
+[data-coreui-theme="dark"] .table {
+    color: var(--pms-text) !important;
+}
+[data-coreui-theme="dark"] .table-hover tbody tr:hover {
+    background-color: rgba(255, 255, 255, 0.03) !important;
+    color: var(--pms-text) !important;
+}
+[data-coreui-theme="dark"] thead.table-light th {
+    background-color: var(--pms-header-bg) !important;
+    color: var(--pms-text) !important;
+    border-bottom: 2px solid var(--pms-border) !important;
+}
+
+/* 📍 4. 모달(Modal) 및 브레드크럼(Breadcrumb) 대응 */
+[data-coreui-theme="dark"] .modal-content {
+    background-color: var(--pms-card-bg) !important;
+    border: 1px solid var(--pms-border) !important;
+}
+[data-coreui-theme="dark"] .breadcrumb-item, 
+[data-coreui-theme="dark"] .breadcrumb-item.active {
+    color: var(--pms-text-muted) !important;
+}
+
+/* 📍 5. 입력창 및 검색바 (Input Group) */
+[data-coreui-theme="dark"] .input-group-text.bg-white {
+    background-color: var(--pms-input-bg) !important;
+    border-color: var(--pms-border) !important;
+    color: var(--pms-text-muted) !important;
+}
+[data-coreui-theme="dark"] .form-control {
+    background-color: var(--pms-input-bg) !important;
+    border-color: var(--pms-border) !important;
+    color: var(--pms-text) !important;
+}
+
+/* 📍 6. 권한 설정 리스트 그룹 */
+[data-coreui-theme="dark"] .list-group-item {
+    background-color: transparent !important;
+    border-color: var(--pms-border) !important;
+    color: var(--pms-text) !important;
+}
+[data-coreui-theme="dark"] .list-group-item.bg-light {
+    background-color: rgba(255, 255, 255, 0.05) !important;
+}
+
+/* 📍 7. 그림자 및 텍스트 강조 */
+[data-coreui-theme="dark"] .shadow-sm, [data-coreui-theme="dark"] .shadow-lg {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4) !important;
+}
+[data-coreui-theme="dark"] .text-dark, [data-coreui-theme="dark"] h3 {
+    color: var(--pms-text) !important;
+}
+
+/* 📍 8. 배지(Badge) 색상 최적화 */
+.bg-info { background-color: #4361ee !important; }
+[data-coreui-theme="dark"] .bg-info { background-color: #3f51b5 !important; }
+
+/* 참여팀 배지 (녹색 요청 반영) */
+.badge-team-green {
+    background-color: rgba(40, 167, 69, 0.1) !important;
+    color: #28a745 !important;
+    border: 1px solid rgba(40, 167, 69, 0.2) !important;
+}
+[data-coreui-theme="dark"] .badge-team-green {
+    background-color: rgba(52, 211, 153, 0.15) !important;
+    color: #34d399 !important;
+    border: 1px solid rgba(52, 211, 153, 0.3) !important;
+}
+</style>
+</head>
 <div layout:fragment="Content">
 	<div class="container-fluid">
 		<div class="card mb-4 border-top-primary border-top-4 shadow-sm">
