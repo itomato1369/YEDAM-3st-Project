@@ -6,6 +6,71 @@
       layout:fragment="Content">
 
 <head>
+<style>
+    /* 1. 기본 테마 변수 설정 (라이트/다크 공통) */
+    :root {
+        --profile-card-bg: #ffffff;
+        --profile-text: #333333;
+        --profile-border: rgba(0, 0, 0, 0.1);
+        --info-badge-bg: #e0f7fa;
+        --info-badge-text: #00bcd4;
+    }
+
+    /* 📍 다크모드일 때 변수값 변경 */
+    [data-coreui-theme="dark"] {
+        --profile-card-bg: #212631;    /* CoreUI 다크 카드 배경색 */
+        --profile-text: #f0f2f5;       /* 밝은 텍스트 */
+        --profile-border: rgba(255, 255, 255, 0.1);
+        --info-badge-bg: rgba(0, 188, 212, 0.2); /* 반투명 배경 */
+        --info-badge-text: #4dd0e1;
+    }
+
+    /* 2. 카드 및 텍스트 스타일 적용 */
+    .card {
+        background-color: var(--profile-card-bg) !important;
+        color: var(--profile-text) !important;
+        border-color: var(--profile-border) !important;
+    }
+    
+    .card-header {
+        background-color: transparent !important; /* 헤더 배경 고정 해제 */
+        border-bottom: 1px solid var(--profile-border) !important;
+    }
+
+    .list-group-item {
+        background-color: transparent !important;
+        color: var(--profile-text) !important;
+        border-color: var(--profile-border) !important;
+    }
+
+    /* 3. 뱃지 및 아바타 커스텀 */
+    .bg-info-lite { 
+        background-color: var(--info-badge-bg) !important;
+        color: var(--info-badge-text) !important;
+    }
+    
+    .avatar.bg-light {
+        background-color: rgba(0, 0, 0, 0.05) !important;
+    }
+    [data-coreui-theme="dark"] .avatar.bg-light {
+        background-color: rgba(255, 255, 255, 0.1) !important;
+    }
+
+    /* 4. 장식용 라인 및 호버 효과 */
+    .border-top-primary { border-top: 4px solid #321fdb !important; }
+    .border-start-danger { border-left: 4px solid #e55353 !important; }
+    
+    .clickable-card:hover { 
+        transform: translateY(-5px); 
+        transition: all 0.3s ease;
+        box-shadow: 0 10px 20px rgba(0,0,0,0.2) !important;
+    }
+
+    /* 관리자 제어판 다크모드 배경 조정 */
+    [data-coreui-theme="dark"] .bg-light.bg-opacity-50 {
+        background-color: rgba(255, 255, 255, 0.05) !important;
+    }
+</style>
     <meta charset="UTF-8">
     <title>PMS Dashboard</title>
 </head>
