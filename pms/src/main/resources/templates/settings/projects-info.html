@@ -3,22 +3,117 @@
 	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
 	layout:decorate="~{common/layouts/default-layout}">
 
+<head>
 <style>
-/* 모달 및 카드 디자인 */
-.modal-content { border-radius: 15px !important; border: none !important; }
-.group-item-card { transition: all 0.2s ease; border: 1px solid #ebedf0 !important; cursor: pointer; border-radius: 12px !important; }
-.group-item-card:hover { border-color: #4361ee !important; background-color: #f8faff !important; }
+/* 1. 테마별 변수 정의 */
+:root {
+    --pms-card-bg: #ffffff;
+    --pms-header-bg: #ffffff; /* 라이트모드 헤더는 흰색 */
+    --pms-text: #212529;
+    --pms-text-muted: #6c757d;
+    --pms-border: #dee2e6;
+    --pms-input-bg: #ffffff;
+}
 
-/* 📍 역할 배지 색상 정의 (추가됨) */
-.bg-info-light { background-color: #eef2ff !important; color: #4361ee !important; }
-.border-info-subtle { border-color: #dbeafe !important; }
-.count-badge { background: #e8f0fe; color: #1967d2; font-size: 0.75rem; padding: 2px 8px; border-radius: 10px; font-weight: 600; }
+[data-coreui-theme="dark"] {
+    --pms-card-bg: #2a303d; 
+    --pms-header-bg: #1d222b; /* 📍 다크모드 헤더는 본문보다 더 어둡게 */
+    --pms-text: #d8dbe0;
+    --pms-text-muted: #a5a9b1;
+    --pms-border: #3c434f;
+    --pms-input-bg: #1b1f28;
+}
 
-/* 페이지네이션 스타일 */
-.pagination-sm .page-link { border: none; color: #666; font-size: 0.75rem; border-radius: 5px; margin: 0 2px; }
-.pagination-sm .page-item.active .page-link { background-color: #4361ee; color: white; }
-#joinedGroupList { min-height: 350px; }
+/* 📍 2. bg-white 클래스 강제 무력화 (가장 중요) */
+/* HTML에 bg-white가 써있어도 다크모드에선 변수값으로 강제 전환합니다. */
+[data-coreui-theme="dark"] .bg-white,
+[data-coreui-theme="dark"] .card-header.bg-white {
+    background-color: var(--pms-header-bg) !important;
+    color: var(--pms-text) !important;
+}
+
+/* 📍 3. 카드 객체 및 본문 설정 */
+.card {
+    background-color: var(--pms-card-bg) !important;
+    border-color: var(--pms-border) !important;
+}
+
+.card-header {
+    border-bottom: 1px solid var(--pms-border) !important;
+    color: var(--pms-text) !important;
+}
+
+/* 📍 4. 텍스트 가독성 조정 */
+.text-dark, h2, h5 {
+    color: var(--pms-text) !important;
+}
+
+.text-muted {
+    color: var(--pms-text-muted) !important;
+}
+
+/* 📍 5. 입력창(Input/Select) 최적화 */
+.form-control, .form-select {
+    background-color: var(--pms-input-bg) !important;
+    border-color: var(--pms-border) !important;
+    color: var(--pms-text) !important;
+}
+
+/* 📍 6. 참여 그룹 리스트 및 동적 아이템 */
+.list-group-item {
+    background-color: transparent !important;
+    border-color: var(--pms-border) !important;
+    color: var(--pms-text) !important;
+}
+
+.group-item-card {
+    background-color: var(--pms-card-bg) !important;
+    border: 1px solid var(--pms-border) !important;
+    color: var(--pms-text) !important;
+}
+
+[data-coreui-theme="dark"] .group-item-card:hover {
+    background-color: rgba(255, 255, 255, 0.05) !important;
+}
+
+/* 📍 7. 배지 및 기타 영역 */
+.bg-info-light {
+    background-color: rgba(67, 97, 238, 0.15) !important;
+    color: #82b1ff !important;
+}
+
+.bg-light-subtle {
+    background-color: var(--pms-header-bg) !important;
+    border-top: 1px solid var(--pms-border) !important;
+}
+
+
+/* 참여팀 배지 커스텀 스타일 */
+.badge-team-light {
+    background-color: rgba(40, 167, 69, 0.1) !important; /* 연한 녹색 배경 */
+    color: #28a745 !important;                          /* 진한 녹색 글자 */
+    border: 1px solid rgba(40, 167, 69, 0.2) !important;
+}
+
+[data-coreui-theme="dark"] .badge-team-light {
+    background-color: rgba(52, 211, 153, 0.15) !important; /* 다크모드용 민트빛 녹색 배경 */
+    color: #34d399 !important;                            /* 다크모드용 밝은 녹색 글자 */
+    border: 1px solid rgba(52, 211, 153, 0.3) !important;
+}
+
+/* 📍 8. 모달(Modal) 대응 */
+.modal-content {
+    background-color: var(--pms-card-bg) !important;
+    border: 1px solid var(--pms-border) !important;
+    color: var(--pms-text) !important;
+}
+
+.modal-header, .modal-footer {
+    background-color: var(--pms-header-bg) !important;
+    border-color: var(--pms-border) !important;
+}
 </style>
+</head>
 
 <div layout:fragment="Content">
 	<div class="container-lg px-4">
@@ -170,7 +265,7 @@
                                 
                                 ${g.isPm == 1 
                                     ? '<span class="badge bg-danger-light text-danger fw-normal border border-danger-subtle" style="font-size: 0.75rem; padding: 4px 8px;">PM (책임)</span>' 
-                                    : '<span class="badge bg-light text-muted fw-normal border" style="font-size: 0.75rem; padding: 4px 8px;">참여원</span>'}
+                                    : '<span class="badge badge-team-light fw-normal" style="font-size: 0.75rem; padding: 4px 8px;">참여팀</span>'}
                             </div>
                         </div>
                         <button class="btn btn-outline-danger btn-sm border-0 btn-remove-group shadow-none ms-3" data-group-no="${g.groupNo}" title="제외">
