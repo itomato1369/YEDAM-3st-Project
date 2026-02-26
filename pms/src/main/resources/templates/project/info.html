@@ -71,12 +71,8 @@
   </div>
 
   <div class="card-footer d-flex gap-2">
-    <a th:href="@{/project/user/{projectCode}/issue/list(projectCode=${projectCode})}" class="text-decoration-none">모든 일감 보기</a>
-    <!--/* 변경이력조회기능 추가하면 넣을것 
-    <span class="text-muted">|</span>
-    <a class="text-decoration-none">변경 사항 보기</a> 
-    */-->
-    <span class="text-muted">|</span>
+    <a th:href="@{/project/user/{projectCode}/issue/list(projectCode=${projectCode})}" class="text-decoration-none">모든 일감 보기</a><span class="text-muted">|</span>
+    <a th:href="@{/project/user/{projectCode}/history(projectCode=${projectCode})}" class="text-decoration-none">변경 사항 보기</a> <span class="text-muted">|</span>
     <a th:href="@{/project/user/{projectCode}/gantt(projectCode=${projectCode})}" class="text-decoration-none">Gantt 차트</a>
   </div>
 </div>
@@ -130,11 +126,10 @@
     <!--/* 안쪽 카드 (멤버 목록) */-->
     <div class="card border mb-2">
       <div class="card-body py-2 px-3 d-flex flex-wrap gap-2">
-        <a th:each="userName : ${entry.value}" 
-           href="#" 
-           class="badge bg-primary-subtle text-primary text-decoration-none"
+        <span  th:each="userName : ${entry.value}" 
+           class="text-secondary"
            th:text="${userName}">
-        </a>
+        </span >
       </div>
     </div>
   </div>
