@@ -4,7 +4,8 @@
         
         <input type="hidden" name="projectNo" id="hiddenProjectNo">
         <input type="hidden" name="parentJobNo" id="hiddenParentJobNo">
-
+		<input type="hidden" id="hiddenJobNo" name="jobNo" />
+		
         <div class="mb-3">
             <label class="form-label fw-bold">제목 <span class="text-danger">*</span></label> 
             <input type="text" class="form-control form-control-sm mt-1" name="title" id="issueTitle" placeholder="제목을 입력하세요" required />
@@ -15,18 +16,25 @@
                 <label class="form-label fw-bold">일감 상태 <span class="text-danger">*</span></label> 
                 <select class="form-select form-select-sm mt-1" name="jobStatusNo" required>
                     <option value="" disabled selected hidden >상태 선택</option>
-                    <option th:each="status : ${statusList}" th:value="${status.commonNo}" th:text="${status.jobStatus}"></option>
+                    <option th:each="status : ${statusList}" th:value="${status.jobStatusNo}" th:text="${status.jobStatus}"></option>
                 </select>
             </div>
             <div class="col-md-6">
                 <label class="form-label fw-bold">일감 유형 <span class="text-danger">*</span></label> 
                 <select class="form-select form-select-sm mt-1" name="jobTypeNo" required>
                     <option value="" disabled selected hidden >유형 선택</option>
-                    <option th:each="type : ${typeList}" th:value="${type.commonNo}" th:text="${type.jobType}"></option>
+                    <option th:each="type : ${typeList}" th:value="${type.jobTypeNo}" th:text="${type.jobType}"></option>
                 </select>
             </div>
         </div>
 
+		<div class="row mb-3" id="changeCommentDiv">
+		    <div class="col-md-12">
+		        <label class="form-label fw-bold">변경 이력 (수정 사유) <span class="text-danger">*</span></label>
+		        <textarea class="form-control" name="changeComment" id="changeComment" rows="2" placeholder="무엇을 수정했는지 간략히 적어주세요."></textarea>
+		    </div>
+		</div>
+		
         <div class="mb-3">
             <label class="form-label fw-bold">상세 설명</label>
             <textarea class="form-control form-control-sm mt-1" placeholder="상세 설명을 입력하세요" id="floatingTextarea" style="height: 100px" name="content"></textarea>
@@ -78,7 +86,7 @@
                 <label class="form-label fw-bold mb-2">공개범위 <span class="text-danger">*</span></label>
                 <div class="d-flex gap-4">
                     <div class="form-check">
-                        <input class="form-check-input" type="radio" name="publicRole" id="public" value="1" checked /> 
+                        <input class="form-check-input" type="radio" name="publicRole" id="public" value="1" /> 
                         <label class="form-check-label" for="public">전체공개</label>
                     </div>
                     <div class="form-check">

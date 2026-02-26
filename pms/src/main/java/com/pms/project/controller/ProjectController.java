@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute; // 추가
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -196,14 +197,14 @@ public class ProjectController {
         
         return responseData;
     }
-    
+	
     @PostMapping("/user/{projectCode}/gantt/insert")
     @ResponseBody
     public IssueDto addGanttData(
-            @PathVariable String projectCode,
-            @ModelAttribute IssueDto issueDto,
-            @RequestParam("files") List<MultipartFile> files, 
-            @AuthenticationPrincipal CustomUserDetails customUser) {
+            @PathVariable String projectCode
+            , @ModelAttribute IssueDto issueDto
+            , @RequestParam("files") List<MultipartFile> files 
+            , @AuthenticationPrincipal CustomUserDetails customUser) {
         
         // 1. 경로 변수로 들어온 프로젝트 코드 및 필수 데이터 세팅
         issueDto.setProjectCode(projectCode);
@@ -218,6 +219,17 @@ public class ProjectController {
 
         // 3. ★ 새 ID(jobNo)가 담긴 DTO 객체를 그대로 반환! (이게 프론트엔드의 savedTask로 들어갑니다)
         return issueDto;
+    }
+    
+    @PutMapping("/user/{projectCode}/gantt/update")
+    @ResponseBody
+    public IssueDto updateGanttData(@PathVariable String projectCode
+                                       , @AuthenticationPrincipal CustomUserDetails customUser
+                                       , @ModelAttribute IssueDto issueDto
+                                       , @RequestParam(value = "deleteFiles", required = false) List<Integer> deleteFiles
+                                   	   , @RequestParam(value = "files", required = false) List<MultipartFile> newFiles ){
+    	
+    	return null;
     }
     
     

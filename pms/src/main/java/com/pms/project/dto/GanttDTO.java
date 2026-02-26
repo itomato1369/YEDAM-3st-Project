@@ -27,6 +27,13 @@ public class GanttDTO {
     @JsonProperty("project_id")
     private String projectId;
     
+    private String description;
+    @JsonProperty("job_status_no")
+    private Integer jobStatusNo;
+    @JsonProperty("job_type_no")
+    private Integer jobTypeNo;
+    private Integer publicRole;
+    
     // dhtmlx 간트차트가 시작일과 종료일을 산정하면서 자동으로 계산하는부분이 있어 종료일은 duration 계산 이후 null 바꾸고 화면에 표시하기위한 종료일을 따로 마련
     private String displayEnd;
     // 화면에 표시하지 않을 값, 표시하면 안되는 값

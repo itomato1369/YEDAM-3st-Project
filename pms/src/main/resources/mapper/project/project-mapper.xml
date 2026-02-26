@@ -285,6 +285,8 @@
 		  id, text, start_date, end_date, progress, parent, project_id
 		  , u.username AS "worker_name"
 		  , c.common_name AS "job_priority"
+      , description
+      , job_status_no, job_type_no, public_role
 		FROM (
 		  SELECT
 		    'p' || pl.project_no        AS id
@@ -299,10 +301,14 @@
 		    , NULL                        AS project_id
 		    , NULL                        AS worker_id
 		    , NULL                        AS job_priority
+            , pl.project_desc             AS description
+            , NULL                        AS job_status_no
+            , NULL                        AS job_type_no
+            , NULL                        AS public_role
 		  FROM (
-		    SELECT p.project_no, p.project_name,p.start_date, p.end_date, p.project_code, p.parent_project_no
+		    SELECT p.project_no, p.project_name,p.start_date, p.end_date, p.project_code, p.parent_project_no, project_desc
 		    FROM project p
-		    START WITH p.project_code = #{projectCode}
+		    START WITH p.project_code = 'mes'
 		    CONNECT BY NOCYCLE PRIOR p.project_no = p.parent_project_no
 		  ) pl
 		    UNION ALL
@@ -319,11 +325,15 @@
 		      , 'p' || j.project_no                  AS project_id
 		      , j.user_id                            AS worker_id
 		      , j.priority                           AS job_priority
+	          , j.content                            AS description
+	          , j.job_status_no
+	          , j.job_type_no
+	          , j.public_role
 		    FROM job j
 		    JOIN (
 		      SELECT p.project_no
 		      FROM project p
-		      START WITH p.project_code = #{projectCode}
+		      START WITH p.project_code = 'mes'
 		      CONNECT BY NOCYCLE PRIOR p.project_no = p.parent_project_no
 		    ) pl ON pl.project_no = j.project_no
 		  )
@@ -340,7 +350,7 @@
 	<!-- 변경 이력조회 -->
 	<select id="selectHistoryByCode" resultType="HistoryDTO">
 		SELECT h.history_no
-		  , h."COMMENT" AS "desc"
+		  , h.change_comment AS "desc"
 		  , h.history_date
 		  , h.delete_date
 		  , h.job_no
