@@ -35,7 +35,7 @@ public class GanttDTO {
     private Integer publicRole;
     
     // dhtmlx 간트차트가 시작일과 종료일을 산정하면서 자동으로 계산하는부분이 있어 종료일은 duration 계산 이후 null 바꾸고 화면에 표시하기위한 종료일을 따로 마련
-    private String displayEnd;
+    // private String displayEnd; // 편하게 하려고 넣었다가 계산복잡해져서 제거
     // 화면에 표시하지 않을 값, 표시하면 안되는 값
     private String jobPriority; // 일감 우선순위
     private String workerName; // 일감 배정받은 작업자 이름

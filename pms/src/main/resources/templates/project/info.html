@@ -12,13 +12,18 @@
 	layout:fragment="Content">
 <div class="mb-2">
 	<!--/* row-header */-->
-	<div class="d-flex justify-content-between align-items-center mb-5">
-		<div class="d-flex align-items-center">
-			<div class="position-relative">
-				<h2 class="fw-bold m-0 text-dark" th:text="|${info.projectName} 개요(${#calendars.format(info.startDate, 'yyyy-MM-dd')} ~ ${#calendars.format(info.endDate, 'yyyy-MM-dd')})|"></h2>
-			</div>
-		</div>
-	</div>
+    <div class="mb-3">
+        <!--/* 프로젝트 정보 */-->
+        <h2 class="fw-bold m-0 text-dark" 
+            th:text="|${info.projectName} 개요(${#calendars.format(info.startDate, 'yyyy-MM-dd')} ~ ${#calendars.format(info.endDate, 'yyyy-MM-dd')})|">
+        </h2>
+    </div>
+    <!--/* 권한에 따른 버튼 표시 */-->
+    <div th:if="${pm or admin}" class="d-flex justify-content-end align-items-center gap-2">
+        <i class="cil-settings text-secondary" style="font-size: 1.5rem"></i>
+        <button class="btn btn-primary fw-bold" name="btnSettings" 
+                th:data-url="@{/settings/projects-info(projectNo=${info.projectNo})}">관리</button>
+    </div>
 </div>
 
 <div class="d-flex flex-column gap-4">
@@ -66,12 +71,8 @@
   </div>
 
   <div class="card-footer d-flex gap-2">
-    <a th:href="@{/project/user/{projectCode}/issue/list(projectCode=${projectCode})}" class="text-decoration-none">모든 일감 보기</a>
-    <!--/* 변경이력조회기능 추가하면 넣을것 
-    <span class="text-muted">|</span>
-    <a class="text-decoration-none">변경 사항 보기</a> 
-    */-->
-    <span class="text-muted">|</span>
+    <a th:href="@{/project/user/{projectCode}/issue/list(projectCode=${projectCode})}" class="text-decoration-none">모든 일감 보기</a><span class="text-muted">|</span>
+    <a th:href="@{/project/user/{projectCode}/history(projectCode=${projectCode})}" class="text-decoration-none">변경 사항 보기</a> <span class="text-muted">|</span>
     <a th:href="@{/project/user/{projectCode}/gantt(projectCode=${projectCode})}" class="text-decoration-none">Gantt 차트</a>
   </div>
 </div>
@@ -125,11 +126,10 @@
     <!--/* 안쪽 카드 (멤버 목록) */-->
     <div class="card border mb-2">
       <div class="card-body py-2 px-3 d-flex flex-wrap gap-2">
-        <a th:each="userName : ${entry.value}" 
-           href="#" 
-           class="badge bg-primary-subtle text-primary text-decoration-none"
+        <span  th:each="userName : ${entry.value}" 
+           class="text-secondary"
            th:text="${userName}">
-        </a>
+        </span >
       </div>
     </div>
   </div>
@@ -173,4 +173,14 @@
 
 
 </div>
+<!--/* jQuery */-->
+<script src="https://code.jquery.com/jquery-4.0.0.js" integrity="sha256-9fsHeVnKBvqh3FB2HYu7g2xseAZ5MlN6Kz/qnkASV8U=" crossorigin="anonymous"></script>
+
+<script>
+	$(document).ready(function() {
+	    $('[data-url]').on('click', function() {
+	        location.href = $(this).data('url');
+	    });
+	});
+</script>
 </html>
