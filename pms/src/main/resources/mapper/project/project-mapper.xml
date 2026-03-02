@@ -177,6 +177,23 @@
 	        pm                FROM g_project
 	    WHERE project_no = #{parentProjectNo}
 	</insert>
+	<!-- PM이면 소속된 그룹들이 -->
+	<insert id="insertCreatorGroupAsPM">
+	    <if test="pmGroupNos != null and pmGroupNos.size() > 0">
+	        MERGE INTO g_project gp
+	        USING (
+	            <foreach collection="pmGroupNos" item="groupNo" separator=" UNION ALL ">
+	                SELECT #{groupNo} AS group_no FROM DUAL
+	            </foreach>
+	        ) m 
+	        ON (gp.project_no = #{projectNo} AND gp.group_no = m.group_no)
+	        WHEN MATCHED THEN
+	            UPDATE SET gp.pm = 1
+	        WHEN NOT MATCHED THEN
+	            INSERT (project_no, group_no, pm)
+	            VALUES (#{projectNo}, m.group_no, 1)
+	    </if>
+	</insert>
 	<!--/* 상위프로젝트 기간 조회 */-->
 	<select id="selectParentProjectDuration">
 		SELECT

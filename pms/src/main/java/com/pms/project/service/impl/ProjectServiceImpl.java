@@ -272,14 +272,8 @@ public class ProjectServiceImpl implements ProjectService {
 	@Override
 	@Transactional
 	public boolean addProject(ProjectInsertDTO projectInsertDTO) {
-		// 프로젝트 생성일이 오늘이면 활성프로젝트 아니면 보관 프로젝트로 생성
-		LocalDate startDate = convertToLocalDate(projectInsertDTO.getStartDate());
-		LocalDate today = LocalDate.now();
-		if (startDate.equals(today)) {
-			projectInsertDTO.setStatus(ProjectStatus.ACTIVE.getCode());
-		} else {
-			projectInsertDTO.setStatus(ProjectStatus.PAUSED.getCode());
-		}
+		// 프로젝트 기본 상태 지정
+		projectInsertDTO.setStatus(ProjectStatus.ACTIVE.getCode());
 
 		// 2. 프로젝트 단일 INSERT 실행
 		// 결과가 0이면 WHERE NOT EXISTS에 걸려 중복 처리된 것임
@@ -288,19 +282,28 @@ public class ProjectServiceImpl implements ProjectService {
 			return false; // 중복 식별자 발생으로 생성 실패
 		}
 
-		// 이 시점에서 insertProject 매퍼의 <selectKey> 덕분에
-		// projectInsertDTO.getProjectNo()에는 방금 생성된 PK 값이 들어있습니다.
-
-		// 3. 부모 프로젝트 멤버 상속 여부에 따라 분기 (Null 방어를 위해 Integer.valueOf 활용)
 		if (Integer.valueOf(1).equals(projectInsertDTO.getParentMemberYn())
-				&& projectInsertDTO.getParentProjectNo() != null && projectInsertDTO.getParentProjectNo() > 0) {
+	            && projectInsertDTO.getParentProjectNo() != null 
+	            && projectInsertDTO.getParentProjectNo() > 0) {
+	        projectMapper.insertInheritedGroups(
+	                projectInsertDTO.getProjectNo(), 
+	                projectInsertDTO.getParentProjectNo()
+	        );
+	    }
+		
+		List<PMGroupDTO> pmGroups = projectMapper.selectIsPM(projectInsertDTO.getUserId());
 
-			// 부모의 그룹-프로젝트 매핑 정보를 내 프로젝트로 복사
-			projectMapper.insertInheritedGroups(projectInsertDTO.getProjectNo(), // 내 프로젝트 번호 (새로 생성됨)
-					projectInsertDTO.getParentProjectNo() // 부모 프로젝트 번호
-			);
-		}
-
+		if (pmGroups != null && !pmGroups.isEmpty()) {
+	        // 중복 그룹 번호를 제거하고 List<Integer>로 변환
+	        List<Integer> myPmGroupNos = pmGroups.stream()
+	                .map(PMGroupDTO::getGroupNo)
+	                .distinct()
+	                .toList();
+	                
+	        // PM 그룹이 존재할 때만, 해당 그룹 번호 목록을 매개변수로 넘겨서 쿼리 실행
+	        projectMapper.insertCreatorGroupAsPM(projectInsertDTO.getProjectNo(), myPmGroupNos);
+	    }
+		
 		return true;
 	}
 
