@@ -493,448 +493,295 @@
 				</div>
 			</div>
 		</div>
+
+		<div class="modal fade" id="confirmModal" tabindex="-1"
+			aria-hidden="true">
+			<div class="modal-dialog modal-dialog-centered">
+				<div class="modal-content border-0 shadow">
+					<div class="modal-header bg-danger text-white">
+						<h5 class="modal-title">
+							<i class="cil-warning me-2"></i>작업 확인
+						</h5>
+						<button type="button" class="btn-close btn-close-white"
+							data-coreui-dismiss="modal"></button>
+					</div>
+					<div class="modal-body p-4 text-center">
+						<p id="confirmModalMessage" class="fs-5 mb-0"></p>
+					</div>
+					<div class="modal-footer bg-light border-0">
+						<button type="button" class="btn btn-secondary"
+							data-coreui-dismiss="modal">취소</button>
+						<button type="button" class="btn btn-danger px-4"
+							id="btnConfirmExecute">확인</button>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div class="toast-container position-fixed bottom-0 end-0 p-3"
+			style="z-index: 9999;">
+			<div id="pmsToast" class="toast hide" role="alert"
+				aria-live="assertive" aria-atomic="true">
+				<div class="toast-header text-white" id="toastHeader">
+					<strong class="me-auto" id="toastTitle">알림</strong>
+					<button type="button" class="btn-close btn-close-white"
+						data-coreui-dismiss="toast"></button>
+				</div>
+				<div class="toast-body" id="toastBody"></div>
+			</div>
+		</div>
 		<script>
-$(document).ready(function () {
-	// 📍 1. 전역 Map 추가 (잠금 전 원래 상태를 기억함)
-    const projectOriginMap = {};
-    // 1. 초기화 및 공통 유틸
-    const init = () => {
-        performSearch();
-        loadUserStatusOptions();
-        performUserSearch();
-        loadGroups();
-        loadRoles();
-        loadJobStatus();
-        loadJobTypes();
-    };
+		$(document).ready(function () {
+		    // 1. 초기화 및 전역 변수
+		    const projectOriginMap = {};
+		    const confirmModal = new coreui.Modal(document.getElementById('confirmModal'));
+		    const pmsToastElement = document.getElementById('pmsToast');
+		    let pmsToast;
+		    let confirmCallback = null;
 
-    const apiCall = (url, type, data, success, error) => $.ajax({
-        url,
-        type,
-        data: typeof data === 'object' && type !== 'GET' ? JSON.stringify(data) : data,
-        contentType: type !== 'GET' ? 'application/json' : undefined,
-        success,
-        error
-    });
+		    // --- [공통 유틸 함수] ---
+		    function showToast(message, type = 'success') {
+		        const header = $('#toastHeader');
+		        const title = $('#toastTitle');
+		        const body = $('#toastBody');
 
- // 2. 검색 유틸리티 (라이브 검색 + 엔터 처리)
-    const handleSearch = (inputSelector, searchFn) => {
-    let timer;
-    $(inputSelector).on('input', function () {
-        clearTimeout(timer);
-        timer = setTimeout(() => {
-            // 입력값을 소문자로 변경하여 검색 실행 (서버 대응용)
-            // 만약 서버가 대소문자 구분 없이 검색을 지원한다면 이 과정 없이도 잘 작동해야 합니다.
-            searchFn(); 
-        }, 300);
-    });
-    
-        // 엔터키는 즉시 실행되도록 유지
-        $(inputSelector).on('keydown', e => {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                clearTimeout(timer); // 엔터 누르면 대기 중인 타이머 취소
-                searchFn();
-            }
-        });
-    };
+		        header.removeClass('bg-success bg-danger').addClass(type === 'success' ? 'bg-success' : 'bg-danger');
+		        title.text(type === 'success' ? '성공' : '알림');
+		        body.text(message);
 
-    // 3. 데이터 로딩 및 렌더링 함수
-    const performSearch = () => $.get('/settings/api/projects/search', {
-        status: $('#projectStatusSelect').val(),
-        keyword: $('#keyword').val()
-    }, renderProjectTable);
+		        if (!pmsToast) pmsToast = new coreui.Toast(pmsToastElement);
+		        pmsToast.show();
+		    }
 
-    const performUserSearch = () => $.get('/settings/api/users/search', {
-        status: $('#userStatusSelect').val(),
-        keyword: $('#userKeyword').val()
-    }, renderUserTable);
+		    function askConfirm(message, callback) {
+		        $('#confirmModalMessage').text(message);
+		        confirmCallback = callback;
+		        confirmModal.show();
+		    }
 
-    $('#btnSearch').on('click', performSearch);
-    $('#btnUserSearch').on('click', performUserSearch);
-    handleSearch('#keyword', performSearch);
-    handleSearch('#userKeyword', performUserSearch);
+		    $('#btnConfirmExecute').on('click', function() {
+		        if (confirmCallback) { confirmCallback(); confirmCallback = null; }
+		        confirmModal.hide();
+		    });
 
-    function renderProjectTable(projects) {
-        const $tbody = $('#projectTableBody').empty();
-        if (!projects?.length) return $tbody.append('<tr><td colspan="6" class="py-4">검색 결과가 없습니다.</td></tr>');
+		    const init = () => {
+		        performSearch();
+		        loadUserStatusOptions();
+		        performUserSearch();
+		        loadGroups();
+		        loadRoles();
+		        loadJobStatus();
+		        loadJobTypes();
+		    };
 
-        projects.forEach(p => {
-            const isLocked = (p.statusValue == 350);
-            // 날짜 포맷 (yyyy/MM/dd)
-            const date = p.createAt ? new Date(p.createAt).toLocaleDateString('ko-KR').replace(/\. /g, '/').replace('.', '') : "-";
-            
-            if (!isLocked) {
-                projectOriginMap[p.projectNo] = p.statusValue;
-            }
-            const originStatus = isLocked ? (projectOriginMap[p.projectNo] || 330) : p.statusValue;
+		    const apiCall = (url, type, data, success, error) => $.ajax({
+		        url,
+		        type,
+		        data: typeof data === 'object' && type !== 'GET' ? JSON.stringify(data) : data,
+		        contentType: type !== 'GET' ? 'application/json' : undefined,
+		        success,
+		        error: error || (() => showToast("서버 통신 중 오류가 발생했습니다.", "error"))
+		    });
 
-            // 📍 <td> 개수를 HTML 헤더(6개)와 정확히 일치시켰습니다.
-            $tbody.append(`
-                <tr>
-                    <td><span class="badge ${p.statusValue == 330 ? 'bg-success' : isLocked ? 'bg-warning' : 'bg-info'}">${p.statusLabel}</span></td>
-                    
-                    <td class="text-start project-name-cell" data-id="${p.projectNo}" style="cursor:pointer">
-                        <span class="name-text text-primary fw-bold">${p.projectName}</span>
-                    </td>
-                    
-                    <td><span class="badge rounded-pill ${p.publicYn === 1 ? 'text-bg-light border' : 'text-bg-dark'}">${p.publicYnLabel}</span></td>
-                    
-                    <td>${date}</td>
-                    
-                    <td>
-                        <button class="btn btn-sm btn-lock ${isLocked ? 'btn-outline-success' : 'btn-outline-warning'}" 
-                                data-id="${p.projectNo}" 
-                                data-status="${p.statusValue}"
-                                data-origin="${originStatus}"> 
-                            <i class="${isLocked ? 'cil-lock-locked' : 'cil-lock-unlocked'}"></i> 
-                            ${isLocked ? '잠금해제' : '잠금'}
-                        </button> 
-                        <button class="btn btn-sm btn-outline-danger btn-delete" data-id="${p.projectNo}">삭제</button>
-                    </td>
-                </tr>`);
-        });
-    }
+		    // --- [검색 로직] ---
+		    const handleSearch = (inputSelector, searchFn) => {
+		        let timer;
+		        $(inputSelector).on('input', function () {
+		            clearTimeout(timer);
+		            timer = setTimeout(() => { searchFn(); }, 300);
+		        });
+		        $(inputSelector).on('keydown', e => {
+		            if (e.key === 'Enter') { e.preventDefault(); clearTimeout(timer); searchFn(); }
+		        });
+		    };
 
-    function renderUserTable(users) {
-        const $tbody = $('#userTableBody').empty();
-        if (!users?.length) return $tbody.append('<tr><td colspan="7" class="py-4">검색 결과가 없습니다.</td></tr>');
+		    const performSearch = () => $.get('/settings/api/projects/search', {
+		        status: $('#projectStatusSelect').val(),
+		        keyword: $('#keyword').val()
+		    }, renderProjectTable);
 
-        users.forEach(u => {
-            const st = { 
-                110: ['사용중', 'bg-success'], 
-                120: ['등록대기', 'bg-info'], 
-                130: ['잠금', 'bg-warning'], 
-                190: ['퇴사', 'bg-secondary'] 
-            }[u.status] || ['알수없음', 'bg-dark'];
+		    const performUserSearch = () => $.get('/settings/api/users/search', {
+		        status: $('#userStatusSelect').val(),
+		        keyword: $('#userKeyword').val()
+		    }, renderUserTable);
 
-            const actionBtn = u.status === 120 
-                ? `<button class="btn btn-sm btn-outline-primary btn-user-activate" data-id="${u.userId}">활성화</button>` 
-                : `<button class="btn btn-sm ${u.status === 130 ? 'btn-outline-success' : 'btn-outline-warning'} btn-user-status" 
-                           data-id="${u.userId}" 
-                           data-status="${u.status === 130 ? 110 : 130}" 
-                           ${u.status === 190 ? 'disabled' : ''}>${u.status === 130 ? '잠금해제' : '잠금'}</button>`;
+		    $('#btnSearch').on('click', performSearch);
+		    $('#btnUserSearch').on('click', performUserSearch);
+		    handleSearch('#keyword', performSearch);
+		    handleSearch('#userKeyword', performUserSearch);
+		    $('#projectStatusSelect').on('change', performSearch);
+		    $('#userStatusSelect').on('change', performUserSearch);
 
-            $tbody.append(`
-                <tr>
-                    <td>${u.userId}</td>
-                    <td class="text-start">${u.userName}</td>
-                    <td><span class="badge ${st[1]}">${st[0]}</span></td>
-                    <td><span class="badge ${u.admin === 1 ? 'bg-danger' : 'bg-info'}">${u.admin === 1 ? '관리자' : '일반'}</span></td>
-                    <td>${u.email || '-'}</td>
-                    <td>${u.createTime ? new Date(u.createTime).toLocaleDateString() : "-"}</td>
-                    <td>
-                        ${actionBtn} 
-                        <button class="btn btn-sm ${u.status === 190 ? 'btn-secondary' : 'btn-outline-danger'} btn-user-retire" 
-                                data-id="${u.userId}" ${u.status === 190 ? 'disabled' : ''}>
-                            ${u.status === 190 ? '퇴사완료' : '퇴사'}
-                        </button>
-                    </td>
-                </tr>`);
-        });
-    }
+		    // --- [테이블 렌더링] ---
+		    function renderProjectTable(projects) {
+		        const $tbody = $('#projectTableBody').empty();
+		        if (!projects?.length) return $tbody.append('<tr><td colspan="6" class="py-4">검색 결과가 없습니다.</td></tr>');
 
-    const loadUserStatusOptions = () => $.get('/settings/api/common/user-status-count', list => {
-        const $select = $('#userStatusSelect'), cur = $select.val();
-        $select.empty().append('<option value="">전체 상태</option>');
-        list.forEach(s => $select.append(`<option value="${s.commonNo}" ${cur == s.commonNo ? 'selected' : ''}>${s.commonName} (${s.userCount})</option>`));
-    });
+		        projects.forEach(p => {
+		            const isLocked = (p.statusValue == 350);
+		            const date = p.createAt ? new Date(p.createAt).toLocaleDateString('ko-KR').replace(/\. /g, '/').replace('.', '') : "-";
+		            if (!isLocked) projectOriginMap[p.projectNo] = p.statusValue;
+		            const originStatus = isLocked ? (projectOriginMap[p.projectNo] || 330) : p.statusValue;
 
-    // 4. 공통 섹션 핸들러 (그룹/역할/일감 설정)
-    const setupSection = (config) => {
-    const renderTable = (data) => {
-        const $tbody = $(config.tbodyId).empty();
-        // 데이터가 없거나 undefined일 때 처리
-        if (!data || data.length === 0) {
-            return $tbody.append(`<tr><td colspan="${config.cols}" class="py-4 text-center">${config.emptyMsg}</td></tr>`);
-        }
-        data.forEach(item => $tbody.append(config.rowFn(item)));
-    };
+		            $tbody.append(`
+		                <tr>
+		                    <td><span class="badge ${p.statusValue == 330 ? 'bg-success' : isLocked ? 'bg-warning' : 'bg-info'}">${p.statusLabel}</span></td>
+		                    <td class="text-start project-name-cell" data-id="${p.projectNo}" style="cursor:pointer">
+		                        <span class="name-text text-primary fw-bold">${p.projectName}</span>
+		                    </td>
+		                    <td><span class="badge rounded-pill ${p.publicYn === 1 ? 'text-bg-light border' : 'text-bg-dark'}">${p.publicYnLabel}</span></td>
+		                    <td>${date}</td>
+		                    <td>
+		                        <button class="btn btn-sm btn-lock ${isLocked ? 'btn-outline-success' : 'btn-outline-warning'}" 
+		                                data-id="${p.projectNo}" data-status="${p.statusValue}" data-origin="${originStatus}"> 
+		                            <i class="${isLocked ? 'cil-lock-locked' : 'cil-lock-unlocked'}"></i> ${isLocked ? '잠금해제' : '잠금'}
+		                        </button> 
+		                        <button class="btn btn-sm btn-outline-danger btn-delete" data-id="${p.projectNo}">삭제</button>
+		                    </td>
+		                </tr>`);
+		        });
+		    }
 
-    // 전체 로드 함수
-    const load = () => $.get(config.listUrl, renderTable);
-    
-    // 검색 함수
-    const search = () => {
-        const keyword = $(config.keywordId).val();
-        $.get(config.searchUrl, { keyword: keyword }, renderTable);
-    };
+		    function renderUserTable(users) {
+		        const $tbody = $('#userTableBody').empty();
+		        if (!users?.length) return $tbody.append('<tr><td colspan="7" class="py-4">검색 결과가 없습니다.</td></tr>');
 
-    // 📍 라이브 검색 (데바운싱 적용)
-    let timer;
-    $(config.keywordId).on('input', function () {
-        clearTimeout(timer);
-        timer = setTimeout(() => {
-            search();
-        }, 300);
-    });
+		        users.forEach(u => {
+		            const st = { 110: ['사용중', 'bg-success'], 120: ['등록대기', 'bg-info'], 130: ['잠금', 'bg-warning'], 190: ['퇴사', 'bg-secondary'] }[u.status] || ['알수없음', 'bg-dark'];
+		            const actionBtn = u.status === 120 
+		                ? `<button class="btn btn-sm btn-outline-primary btn-user-activate" data-id="${u.userId}">활성화</button>` 
+		                : `<button class="btn btn-sm ${u.status === 130 ? 'btn-outline-success' : 'btn-outline-warning'} btn-user-status" 
+		                           data-id="${u.userId}" data-status="${u.status === 130 ? 110 : 130}" ${u.status === 190 ? 'disabled' : ''}>${u.status === 130 ? '잠금해제' : '잠금'}</button>`;
 
-    // 검색 버튼 클릭 및 엔터 처리
-    $(config.searchBtnId).on('click', search);
-    $(config.keywordId).on('keydown', e => {
-        if (e.key === 'Enter') {
-            e.preventDefault();
-            clearTimeout(timer);
-            search();
-        }
-    });
+		            $tbody.append(`
+		                <tr>
+		                    <td>${u.userId}</td>
+		                    <td class="text-start">${u.userName}</td>
+		                    <td><span class="badge ${st[1]}">${st[0]}</span></td>
+		                    <td><span class="badge ${u.admin === 1 ? 'bg-danger' : 'bg-info'}">${u.admin === 1 ? '관리자' : '일반'}</span></td>
+		                    <td>${u.email || '-'}</td>
+		                    <td>${u.createTime ? u.createTime.split('T')[0] : "-"}</td>
+		                    <td>
+		                        ${actionBtn} 
+		                        <button class="btn btn-sm ${u.status === 190 ? 'btn-secondary' : 'btn-outline-danger'} btn-user-retire" 
+		                                data-id="${u.userId}" ${u.status === 190 ? 'disabled' : ''}>${u.status === 190 ? '퇴사완료' : '퇴사'}</button>
+		                    </td>
+		                </tr>`);
+		        });
+		    }
 
-    // 생성 버튼 처리
-    $(config.addBtnId).on('click', () => {
-        if ($(config.newInputId).length) return $(config.newInputId).focus();
-        $(config.tbodyId).prepend(config.newRowHtml); 
-        $(config.newInputId).focus();
-    });
+		    const loadUserStatusOptions = () => $.get('/settings/api/common/user-status-count', list => {
+		        const $select = $('#userStatusSelect'), cur = $select.val();
+		        $select.empty().append('<option value="">전체 상태</option>');
+		        list.forEach(s => $select.append(`<option value="${s.commonNo}" ${cur == s.commonNo ? 'selected' : ''}>${s.commonName} (${s.userCount})</option>`));
+		    });
 
-    // 📍 중요: 최초 1회 로드는 수동으로 호출하거나 리턴받은 객체로 호출해야 함
-    return { load, renderTable };
-};
+		    // --- [공통 섹션 핸들러] ---
+		    const setupSection = (config) => {
+		        const renderTable = (data) => {
+		            const $tbody = $(config.tbodyId).empty();
+		            if (!data || data.length === 0) return $tbody.append(`<tr><td colspan="${config.cols}" class="py-4 text-center">${config.emptyMsg}</td></tr>`);
+		            data.forEach(item => $tbody.append(config.rowFn(item)));
+		        };
+		        const load = () => $.get(config.listUrl, renderTable);
+		        const search = () => $.get(config.searchUrl, { keyword: $(config.keywordId).val() }, renderTable);
 
-    // 5. 각 섹션 컨트롤러 설정
-    const gCtrl = setupSection({
-        listUrl: '/settings/api/groups',
-        searchUrl: '/settings/api/groups/search',
-        searchBtnId: '#btnGroupSearch',
-        keywordId: '#groupKeyword',
-        addBtnId: '#btnGroupAdd',
-        tbodyId: '#groupTableBody',
-        cols: 4,
-        emptyMsg: '등록된 그룹이 없습니다.',
-        newInputId: '#groupNewInput',
-        rowFn: g => `
-            <tr>
-                <td><span class="badge ${g.status == 510 ? 'bg-success' : 'bg-warning'}">${g.statusName}</span></td>
-                <td class="text-start group-name-cell" data-id="${g.groupNo}" style="cursor:pointer">
-                    <span class="name-text text-primary fw-bold">${g.groupName}</span>
-                </td>
-                <td class="text-center"><span class="badge bg-light text-dark">${g.memberCount || 0} 명</span></td>
-                <td>
-                    <button class="btn btn-sm ${g.status == 510 ? 'btn-outline-warning' : 'btn-outline-success'} btn-group-toggle" 
-                            data-id="${g.groupNo}" data-status="${g.status}">상태변경</button>
-                </td>
-            </tr>`,
-        newRowHtml: `
-            <tr class="table-info" id="rowGroupNew">
-                <td>-</td>
-                <td colspan="2"><input type="text" id="groupNewInput" class="form-control form-control-sm" placeholder="새 그룹명 입력"></td>
-                <td>
-                    <button class="btn btn-sm btn-primary btn-group-save">저장</button>
-                    <button class="btn btn-sm btn-secondary btn-group-cancel">취소</button>
-                </td>
-            </tr>`
-    });
+		        handleSearch(config.keywordId, search);
+		        $(config.searchBtnId).on('click', search);
+		        $(config.addBtnId).on('click', () => {
+		            if ($(config.newInputId).length) return $(config.newInputId).focus();
+		            $(config.tbodyId).prepend(config.newRowHtml); $(config.newInputId).focus();
+		        });
+		        return { load };
+		    };
 
-    const rCtrl = setupSection({
-        listUrl: '/settings/api/roles',
-        searchUrl: '/settings/api/roles/search',
-        searchBtnId: '#btnRoleSearch',
-        keywordId: '#roleKeyword',
-        addBtnId: '#btnRoleAdd',
-        tbodyId: '#roleTableBody',
-        cols: 2,
-        emptyMsg: '등록된 권한이 없습니다.',
-        newInputId: '#roleNewInput',
-        rowFn: r => `
-            <tr>
-                <td class="text-start ps-4 role-name-cell" data-id="${r.roleNo}" style="cursor:pointer">
-                    <span class="name-text text-primary fw-bold">${r.roleName}</span>
-                </td>
-                <td><button class="btn btn-sm btn-outline-danger btn-role-delete" data-id="${r.roleNo}">삭제</button></td>
-            </tr>`,
-        newRowHtml: `
-            <tr class="table-info" id="rowRoleNew">
-                <td><input type="text" id="roleNewInput" class="form-control form-control-sm" placeholder="역할명 입력"></td>
-                <td>
-                    <button class="btn btn-sm btn-primary btn-role-save">저장</button>
-                    <button class="btn btn-sm btn-secondary btn-role-cancel">취소</button>
-                </td>
-            </tr>`
-    });
+		    const gCtrl = setupSection({ listUrl: '/settings/api/groups', searchUrl: '/settings/api/groups/search', searchBtnId: '#btnGroupSearch', keywordId: '#groupKeyword', addBtnId: '#btnGroupAdd', tbodyId: '#groupTableBody', cols: 4, emptyMsg: '등록된 그룹이 없습니다.', newInputId: '#groupNewInput', rowFn: g => `<tr><td><span class="badge ${g.status == 510 ? 'bg-success' : 'bg-warning'}">${g.statusName}</span></td><td class="text-start group-name-cell" data-id="${g.groupNo}" style="cursor:pointer"><span class="name-text text-primary fw-bold">${g.groupName}</span></td><td class="text-center"><span class="badge bg-light text-dark">${g.memberCount || 0} 명</span></td><td><button class="btn btn-sm ${g.status == 510 ? 'btn-outline-warning' : 'btn-outline-success'} btn-group-toggle" data-id="${g.groupNo}" data-status="${g.status}">상태변경</button></td></tr>`, newRowHtml: `<tr class="table-info" id="rowGroupNew"><td>-</td><td colspan="2"><input type="text" id="groupNewInput" class="form-control form-control-sm" placeholder="새 그룹명 입력"></td><td><button class="btn btn-sm btn-primary btn-group-save">저장</button> <button class="btn btn-sm btn-secondary btn-group-cancel">취소</button></td></tr>` });
+		    const rCtrl = setupSection({ listUrl: '/settings/api/roles', searchUrl: '/settings/api/roles/search', searchBtnId: '#btnRoleSearch', keywordId: '#roleKeyword', addBtnId: '#btnRoleAdd', tbodyId: '#roleTableBody', cols: 2, emptyMsg: '등록된 권한이 없습니다.', newInputId: '#roleNewInput', rowFn: r => `<tr><td class="text-start ps-4 role-name-cell" data-id="${r.roleNo}" style="cursor:pointer"><span class="name-text text-primary fw-bold">${r.roleName}</span></td><td><button class="btn btn-sm btn-outline-danger btn-role-delete" data-id="${r.roleNo}">삭제</button></td></tr>`, newRowHtml: `<tr class="table-info" id="rowRoleNew"><td><input type="text" id="roleNewInput" class="form-control form-control-sm" placeholder="역할명 입력"></td><td><button class="btn btn-sm btn-primary btn-role-save">저장</button> <button class="btn btn-sm btn-secondary btn-role-cancel">취소</button></td></tr>` });
+		    const jsCtrl = setupSection({ listUrl: '/settings/api/job-status', searchUrl: '/settings/api/job-status/search', searchBtnId: '#btnJobStatusSearch', keywordId: '#jobStatusKeyword', addBtnId: '#btnJobStatusAdd', tbodyId: '#jobStatusTableBody', cols: 2, emptyMsg: '데이터가 없습니다.', newInputId: '#jobStatusNewInput', rowFn: i => `<tr><td class="text-start ps-4">${i.jobStatus}</td><td><button class="btn btn-sm btn-outline-danger btn-job-status-delete" data-id="${i.jobStatusNo}">삭제</button></td></tr>`, newRowHtml: `<tr class="table-info" id="rowJobStatusNew"><td><input type="text" id="jobStatusNewInput" class="form-control form-control-sm" placeholder="상태명 입력"></td><td><button class="btn btn-sm btn-primary btn-job-status-save">저장</button> <button class="btn btn-sm btn-secondary btn-job-status-cancel">취소</button></td></tr>` });
+		    const jtCtrl = setupSection({ listUrl: '/settings/api/job-types', searchUrl: '/settings/api/job-types/search', searchBtnId: '#btnJobTypeSearch', keywordId: '#jobTypeKeyword', addBtnId: '#btnJobTypeAdd', tbodyId: '#jobTypeTableBody', cols: 2, emptyMsg: '데이터가 없습니다.', newInputId: '#jobTypeNewInput', rowFn: i => `<tr><td class="text-start ps-4">${i.jobType}</td><td><button class="btn btn-sm btn-outline-danger btn-job-type-delete" data-id="${i.jobTypeNo}">삭제</button></td></tr>`, newRowHtml: `<tr class="table-info" id="rowJobTypeNew"><td><input type="text" id="jobTypeNewInput" class="form-control form-control-sm" placeholder="유형명 입력"></td><td><button class="btn btn-sm btn-primary btn-job-type-save">저장</button> <button class="btn btn-sm btn-secondary btn-job-type-cancel">취소</button></td></tr>` });
 
-    const jsCtrl = setupSection({ 
-        listUrl: '/settings/api/job-status', 
-        searchUrl: '/settings/api/job-status/search', 
-        searchBtnId: '#btnJobStatusSearch', 
-        keywordId: '#jobStatusKeyword', 
-        addBtnId: '#btnJobStatusAdd', 
-        tbodyId: '#jobStatusTableBody', 
-        cols: 2, emptyMsg: '데이터가 없습니다.', 
-        newInputId: '#jobStatusNewInput', 
-        rowFn: i => `<tr><td class="text-start ps-4">${i.jobStatus}</td><td><button class="btn btn-sm btn-outline-danger btn-job-status-delete" data-id="${i.jobStatusNo}">삭제</button></td></tr>`, 
-        newRowHtml: `<tr class="table-info" id="rowJobStatusNew"><td><input type="text" id="jobStatusNewInput" class="form-control form-control-sm" placeholder="상태명 입력"></td><td><button class="btn btn-sm btn-primary btn-job-status-save">저장</button> <button class="btn btn-sm btn-secondary btn-job-status-cancel">취소</button></td></tr>` 
-    });
+		    const loadGroups = gCtrl.load, loadRoles = rCtrl.load, loadJobStatus = jsCtrl.load, loadJobTypes = jtCtrl.load;
 
-    const jtCtrl = setupSection({ 
-        listUrl: '/settings/api/job-types', 
-        searchUrl: '/settings/api/job-types/search', 
-        searchBtnId: '#btnJobTypeSearch', 
-        keywordId: '#jobTypeKeyword', 
-        addBtnId: '#btnJobTypeAdd', 
-        tbodyId: '#jobTypeTableBody', 
-        cols: 2, emptyMsg: '데이터가 없습니다.', 
-        newInputId: '#jobTypeNewInput', 
-        rowFn: i => `<tr><td class="text-start ps-4">${i.jobType}</td><td><button class="btn btn-sm btn-outline-danger btn-job-type-delete" data-id="${i.jobTypeNo}">삭제</button></td></tr>`, 
-        newRowHtml: `<tr class="table-info" id="rowJobTypeNew"><td><input type="text" id="jobTypeNewInput" class="form-control form-control-sm" placeholder="유형명 입력"></td><td><button class="btn btn-sm btn-primary btn-job-type-save">저장</button> <button class="btn btn-sm btn-secondary btn-job-type-cancel">취소</button></td></tr>` 
-    });
+		    // --- [공통 액션 바인딩] ---
+		    const bindActions = (prefix, url, loadFn, dataFn, rowIdPrefix) => {
+		        const save = () => {
+		            const $input = $(`#${prefix}NewInput`); const val = $input.val()?.trim();
+		            if (!val) { $(`#row${rowIdPrefix}New`).remove(); return; }
+		            apiCall(url, 'POST', dataFn(val), () => { showToast("등록되었습니다."); loadFn(); });
+		        };
+		        const btnClassBase = prefix.replace(/([A-Z])/g, "-$1").toLowerCase();
+		        $(document).on('click', `.btn-${btnClassBase}-save`, save);
+		        $(document).on('click', `.btn-${btnClassBase}-cancel`, () => $(`#row${rowIdPrefix}New`).remove());
+		        $(document).on('click', `.btn-${btnClassBase}-delete`, function () {
+		            const id = $(this).data('id'); const itemName = $(this).closest('tr').find('td:first').text().trim();
+		            askConfirm(`[${itemName}] 항목을 삭제하시겠습니까?`, () => {
+		                $.ajax({ url: `${url}/${id}`, type: 'DELETE', 
+		                    success: () => { showToast("삭제되었습니다."); loadFn(); },
+		                    error: (xhr) => {
+		                        if (xhr.status === 409) showToast("현재 사용 중인 항목은 삭제할 수 없습니다.", "error");
+		                        else showToast("삭제 실패", "error");
+		                    }
+		                });
+		            });
+		        });
+		    };
 
-    const loadGroups = gCtrl.load, loadRoles = rCtrl.load, loadJobStatus = jsCtrl.load, loadJobTypes = jtCtrl.load;
+		    bindActions('group', '/settings/api/groups', loadGroups, v => ({ groupName: v, status: 520 }), 'Group');
+		    bindActions('role', '/settings/api/roles', loadRoles, v => ({ roleName: v }), 'Role');
+		    bindActions('jobStatus', '/settings/api/job-status', loadJobStatus, v => ({ jobStatus: v }), 'JobStatus');
+		    bindActions('jobType', '/settings/api/job-types', loadJobTypes, v => ({ jobType: v }), 'JobType');
 
-    // 6. 공통 액션 바인딩
-    const bindActions = (prefix, url, loadFn, dataFn, rowIdPrefix) => {
-        let isProcessing = false;
+		    // --- [특수 액션] ---
+		    $(document).on('click', '.btn-lock', function () {
+		        const id = $(this).data('id');
+		        const targetStatus = ($(this).data('status') == 350) ? $(this).data('origin') : 350;
+		        apiCall(`/settings/api/projects/${id}/lock?status=${targetStatus}`, 'PATCH', null, () => {
+		            showToast("프로젝트 상태가 변경되었습니다."); performSearch();
+		        });
+		    });
 
-        const save = () => {
-            if (isProcessing) return;
-            const $input = $(`#${prefix}NewInput`);
-            const val = $input.val()?.trim();
+		    $(document).on('click', '.btn-delete', function () {
+		        const id = $(this).data('id');
+		        askConfirm("프로젝트를 정말 삭제하시겠습니까? (삭제된 프로젝트는 복구되지 않습니다)", () => {
+		            apiCall(`/settings/api/projects/${id}`, 'DELETE', null, () => {
+		                showToast("삭제되었습니다."); performSearch();
+		            });
+		        });
+		    });
 
-            if (!val) { cancel(); return; }
+		    $(document).on('click', '.btn-user-status, .btn-user-activate, .btn-user-retire', function () {
+		        const userId = $(this).data('id');
+		        let targetStatus, msg = "정보가 업데이트되었습니다.";
 
-            isProcessing = true;
-            $input.prop('disabled', true);
+		        if ($(this).hasClass('btn-user-activate')) targetStatus = 110;
+		        else if ($(this).hasClass('btn-user-retire')) {
+		            askConfirm("정말로 퇴사 처리하시겠습니까?", () => {
+		                apiCall('/settings/api/users/status', 'PATCH', { userId: userId, status: 190 }, () => {
+		                    showToast("퇴사 처리가 완료되었습니다."); performUserSearch(); loadUserStatusOptions();
+		                });
+		            }); return;
+		        } else targetStatus = $(this).data('status');
 
-            apiCall(url, 'POST', dataFn(val),
-                (res) => {
-                    alert("등록되었습니다.");
-                    isProcessing = false;
-                    loadFn();
-                },
-                (err) => {
-                    alert("등록 중 오류가 발생했습니다.");
-                    isProcessing = false;
-                    $input.prop('disabled', false);
-                }
-            );
-        };
+		        apiCall('/settings/api/users/status', 'PATCH', { userId: userId, status: targetStatus }, () => {
+		            showToast(msg); performUserSearch(); loadUserStatusOptions();
+		        });
+		    });
 
-        const cancel = () => { $(`#row${rowIdPrefix}New`).remove(); };
-        const btnClassBase = prefix.replace(/([A-Z])/g, "-$1").toLowerCase();
+		    $(document).on('click', '.btn-group-toggle', function () {
+		        apiCall(`/settings/api/groups/${$(this).data('id')}/toggle-status`, 'PATCH', null, () => {
+		            showToast("그룹 상태가 변경되었습니다."); loadGroups();
+		        });
+		    });
 
-        $(document).off('click', `.btn-${btnClassBase}-save`).on('click', `.btn-${btnClassBase}-save`, save);
-        $(document).off('click', `.btn-${btnClassBase}-cancel`).on('click', `.btn-${btnClassBase}-cancel`, cancel);
+		    // --- [링크 이동 및 기타] ---
+		    $(document).on('click', '.role-name-cell', function () { location.href = `/settings/roles-info?menu_id=${$(this).data('id')}`; });
+		    $(document).on('click', '.group-name-cell', function () { location.href = `/settings/groups-info?group_no=${$(this).data('id')}`; });
+		    $(document).on('click', '.project-name-cell', function () { location.href = `/settings/projects-info?projectNo=${$(this).data('id')}`; });
+		    $('#btnUserAdd').on('click', () => { location.href = '/user/new'; });
+		    $('#btnProjectAdd').on('click', () => { location.href = '/project/new'; });
 
-        $(document).off('keydown', `#${prefix}NewInput`).on('keydown', `#${prefix}NewInput`, function (e) {
-            if (e.key === 'Enter') { e.preventDefault(); save(); }
-            if (e.key === 'Escape') cancel();
-        });
-
-        $(document).off('blur', `#${prefix}NewInput`).on('blur', `#${prefix}NewInput`, function () {
-            setTimeout(() => { if (!$(this).val()?.trim()) cancel(); }, 200);
-        });
-
-        $(document).off('click', `.btn-${btnClassBase}-delete`).on('click', `.btn-${btnClassBase}-delete`, function () {
-            const id = $(this).data('id');
-            // 현재 행(tr)의 첫 번째 자식(td)에서 이름을 가져옵니다. (상태명 혹은 유형명)
-            const itemName = $(this).closest('tr').find('td:first').text().trim();
-
-            if (confirm(`[${itemName}] 항목을 정말로 삭제하시겠습니까?`)) {
-                $.ajax({
-                    url: `${url}/${id}`,
-                    type: 'DELETE',
-                    success: function() {
-                        alert("성공적으로 삭제되었습니다.");
-                        loadFn(); // 리스트 새로고침
-                    },
-                    error: function(xhr) {
-                        // 📍 백엔드에서 에러를 잡아 409를 던졌을 때 작동
-                        if (xhr.status === 409) {
-                            alert(`🚫 삭제 불가: [${itemName}] 항목이 현재 다른 데이터(일감 등)에서 사용 중입니다.\n\n사용 중인 데이터를 먼저 변경한 후 다시 시도해주세요.`);
-                        } else {
-                            alert("삭제 중 서버 오류가 발생했습니다.");
-                        }
-                    }
-                });
-            }
-        });
-    };
-
-    bindActions('group', '/settings/api/groups', loadGroups, v => ({ groupName: v, status: 520 }), 'Group');
-    bindActions('role', '/settings/api/roles', loadRoles, v => ({ roleName: v }), 'Role');
-    bindActions('jobStatus', '/settings/api/job-status', loadJobStatus, v => ({ jobStatus: v }), 'JobStatus');
-    bindActions('jobType', '/settings/api/job-types', loadJobTypes, v => ({ jobType: v }), 'JobType');
-
-    // 7. 특수 이벤트 처리 (프로젝트 & 사용자)
-    $(document).on('click', '.btn-lock', function () {
-    const id = $(this).data('id');
-    const currentStatus = $(this).data('status');
-    const originStatus = $(this).data('origin'); // 버튼에 박혀있는 '중단(340)' 혹은 '진행(330)'
-    
-    // 현재 잠금(350)이면 원래 상태로, 아니면 잠금(350)으로!
-    const targetStatus = (currentStatus == 350) ? originStatus : 350;
-
-    $.ajax({
-        url: `/settings/api/projects/${id}/lock?status=${targetStatus}`,
-        type: 'PATCH',
-        success: function () {
-            alert("상태가 변경되었습니다.");
-            performSearch(); // 다시 검색해서 테이블을 그릴 때 originStatus가 350으로 덮어써지지 않게 주의해야 함
-        }
-    });
-});
-
-    $(document).on('click', '.btn-delete', function () {
-        if (confirm("프로젝트를 삭제하시겠습니까?")) {
-            apiCall(`/settings/api/projects/${$(this).data('id')}`, 'DELETE', null, performSearch);
-        }
-    });
-
-    $(document).on('click', '.btn-user-status, .btn-user-activate, .btn-user-retire', function () {
-        const userId = $(this).data('id');
-        let targetStatus;
-
-        if ($(this).hasClass('btn-user-activate')) {
-            targetStatus = 110;
-        } else if ($(this).hasClass('btn-user-retire')) {
-            if (!confirm("정말로 퇴사 처리하시겠습니까?")) return;
-            targetStatus = 190;
-        } else {
-            targetStatus = $(this).data('status');
-        }
-
-        apiCall('/settings/api/users/status', 'PATCH', { userId: userId, status: targetStatus }, function (res) {
-            alert("사용자 정보가 업데이트되었습니다.");
-            performUserSearch();
-            loadUserStatusOptions();
-        });
-    });
-
-    $(document).on('click', '.btn-group-toggle', function () {
-        apiCall(`/settings/api/groups/${$(this).data('id')}/toggle-status`, 'PATCH', null, loadGroups);
-    });
-
-    $(document).on('click', '.role-name-cell', function () {
-        const roleId = $(this).data('id');
-        if (roleId) location.href = `/settings/roles-info?menu_id=${roleId}`;
-    });
-
-    $(document).on('click', '.group-name-cell', function () {
-        const groupId = $(this).data('id');
-        if (groupId) location.href = `/settings/groups-info?group_no=${groupId}`;
-    });
-
-    
- 	// 프로젝트 상태 변경 시 즉시 검색
-    $('#projectStatusSelect').on('change', performSearch);
-
-    // 사용자 상태 변경 시 즉시 검색
-    $('#userStatusSelect').on('change', performUserSearch);
-    
- 	// 📍 사용자 등록 버튼 클릭 시 회원가입 페이지로 이동
-    $('#btnUserAdd').on('click', function() {
-        location.href = '/user/new';
-    });
- 	
-    $('#btnProjectAdd').on('click', function() {
-        location.href = '/project/new';
-    });
-    $(document).on('click', '.project-name-cell', function () {
-        const projectNo = $(this).data('id');
-        if (projectNo) {
-            location.href = `/settings/projects-info?projectNo=${projectNo}`;
-        }
-    });
-    init();
-});
+		    init();
+		});
 </script>
 	</div>
 </html>

@@ -179,40 +179,38 @@ h3, .card-title {
 	border-color: var(--pms-border) !important;
 }
 
-
 /* 📍 헤더와 본문의 체크박스 위치를 물리적으로 고정 */
 .table th.ps-4, .table td.ps-4 {
-    padding-left: 1.5rem !important; /* 본문의 ps-4와 헤더의 ps-4를 완벽히 일치시킴 */
+	padding-left: 1.5rem !important; /* 본문의 ps-4와 헤더의 ps-4를 완벽히 일치시킴 */
 }
 
 /* 📍 체크박스와 텍스트의 수직 중앙 정렬 */
-.search-target .d-flex, 
-.table thead th .d-flex {
-    display: flex;
-    align-items: center;
-    min-height: 24px; /* 높이를 맞춰서 세로 중심을 잡음 */
+.search-target .d-flex, .table thead th .d-flex {
+	display: flex;
+	align-items: center;
+	min-height: 24px; /* 높이를 맞춰서 세로 중심을 잡음 */
 }
 
 /* 📍 체크박스 마진 완전 제거 (정렬 방해 요소) */
 #selectAllMaster, .row-select-all {
-    margin: 0 !important;
+	margin: 0 !important;
 }
 
 /* 📍 다크모드에서 '뒤로가기' 버튼 가시성 강화 */
 [data-coreui-theme="dark"] .btn-outline-dark {
-    color: #d8dbe0 !important;          /* 밝은 회색 글자 */
-    border-color: #4f5d73 !important;   /* 약간 밝은 테두리 */
+	color: #d8dbe0 !important; /* 밝은 회색 글자 */
+	border-color: #4f5d73 !important; /* 약간 밝은 테두리 */
 }
 
 [data-coreui-theme="dark"] .btn-outline-dark:hover {
-    background-color: rgba(255, 255, 255, 0.1) !important; /* 호버 시 살짝 밝아짐 */
-    color: #ffffff !important;
+	background-color: rgba(255, 255, 255, 0.1) !important; /* 호버 시 살짝 밝아짐 */
+	color: #ffffff !important;
 }
 
 /* 📍 (보너스) '이름 수정' 버튼도 다크모드에서 더 잘 보이게 */
 [data-coreui-theme="dark"] .btn-outline-secondary {
-    color: #a5a9b1 !important;
-    border-color: #3c434f !important;
+	color: #a5a9b1 !important;
+	border-color: #3c434f !important;
 }
 </style>
 </head>
@@ -316,17 +314,85 @@ h3, .card-title {
 				</div>
 			</div>
 		</div>
+		<div class="modal fade" id="confirmModal" tabindex="-1"
+			aria-hidden="true">
+			<div class="modal-dialog modal-dialog-centered">
+				<div class="modal-content border-0 shadow">
+					<div class="modal-header bg-danger text-white">
+						<h5 class="modal-title">
+							<i class="cil-warning me-2"></i>작업 확인
+						</h5>
+						<button type="button" class="btn-close btn-close-white"
+							data-coreui-dismiss="modal"></button>
+					</div>
+					<div class="modal-body p-4 text-center">
+						<p id="confirmModalMessage" class="fs-5 mb-0">정말로 진행하시겠습니까?</p>
+					</div>
+					<div class="modal-footer bg-light border-0">
+						<button type="button" class="btn btn-secondary"
+							data-coreui-dismiss="modal">취소</button>
+						<button type="button" class="btn btn-danger px-4"
+							id="btnConfirmExecute">확인</button>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div class="toast-container position-fixed bottom-0 end-0 p-3"
+			style="z-index: 9999;">
+			<div id="pmsToast" class="toast hide" role="alert"
+				aria-live="assertive" aria-atomic="true">
+				<div class="toast-header text-white" id="toastHeader">
+					<strong class="me-auto" id="toastTitle">알림</strong>
+					<button type="button" class="btn-close btn-close-white"
+						data-coreui-dismiss="toast"></button>
+				</div>
+				<div class="toast-body" id="toastBody"></div>
+			</div>
+		</div>
+
 
 		<script th:inline="javascript">
 $(document).ready(function () {
     const urlParams = new URLSearchParams(window.location.search);
     const roleNo = urlParams.get('menu_id');
 
+    // CoreUI 객체 초기화
+    const confirmModal = new coreui.Modal(document.getElementById('confirmModal'));
+    const pmsToastElement = document.getElementById('pmsToast');
+    let pmsToast;
+    let confirmCallback = null;
+
     if (!roleNo) {
-        alert("권한 번호가 누락되었습니다.");
-        location.href = "/settings";
+        window.location.href = "/settings";
         return;
     }
+
+    // --- [공통 유틸 함수] ---
+    function showToast(message, type = 'success') {
+        const header = $('#toastHeader');
+        const title = $('#toastTitle');
+        const body = $('#toastBody');
+
+        header.removeClass('bg-success bg-danger').addClass(type === 'success' ? 'bg-success' : 'bg-danger');
+        title.text(type === 'success' ? '성공' : '알림');
+        body.text(message);
+
+        if (!pmsToast) pmsToast = new coreui.Toast(pmsToastElement);
+        pmsToast.show();
+    }
+
+    function askConfirm(message, callback) {
+        $('#confirmModalMessage').text(message);
+        confirmCallback = callback;
+        confirmModal.show();
+    }
+
+    // 컨펌 모달 승인 클릭
+    $('#btnConfirmExecute').on('click', function() {
+        if (confirmCallback) { confirmCallback(); confirmCallback = null; }
+        confirmModal.hide();
+    });
 
     // [데이터 로드]
     const loadData = () => {
@@ -338,7 +404,7 @@ $(document).ready(function () {
                 $('#roleIdDisplay').text(`(ID: ${roleNo})`);
                 updateSelectAllStatus();
             }
-        });
+        }).fail(() => showToast("데이터 로드 중 오류가 발생했습니다.", "error"));
     };
 
     // [테이블 렌더링]
@@ -369,58 +435,41 @@ $(document).ready(function () {
         });
     };
 
-    // [상태 동기화 함수] - 하나로 통합
+    // [상태 동기화 함수]
     const updateSelectAllStatus = () => {
         const types = ['read', 'create', 'update', 'delete'];
-        
-        // 1. 열(세로) 동기화
         types.forEach(type => {
             const totalVisible = $(`.permission-checkbox[data-type="${type}"]:visible`).length;
             const checkedVisible = $(`.permission-checkbox[data-type="${type}"]:visible:checked`).length;
             $(`.select-all[data-type="${type}"]`).prop('checked', totalVisible > 0 && totalVisible === checkedVisible);
         });
-
-        // 2. 행(가로) 동기화
         $('#permissionTableBody tr:visible').each(function() {
             const totalInRow = $(this).find('.permission-checkbox').length;
             const checkedInRow = $(this).find('.permission-checkbox:checked').length;
             $(this).find('.row-select-all').prop('checked', totalInRow > 0 && totalInRow === checkedInRow);
         });
-
-        // 3. 마스터(전체) 동기화
         const totalAll = $('#permissionTableBody tr:visible .permission-checkbox').length;
         const checkedAll = $('#permissionTableBody tr:visible .permission-checkbox:checked').length;
         $('#selectAllMaster').prop('checked', totalAll > 0 && totalAll === checkedAll);
     };
 
-    // [이벤트: 개별 체크박스 변경]
-    $(document).on('change', '.permission-checkbox', function() {
-        updateSelectAllStatus();
-    });
-
-    // [이벤트: 가로줄 전체 선택]
+    // [체크박스 이벤트]
+    $(document).on('change', '.permission-checkbox', updateSelectAllStatus);
     $(document).on('change', '.row-select-all', function() {
-        const isChecked = $(this).is(':checked');
-        $(this).closest('tr').find('.permission-checkbox').prop('checked', isChecked);
+        $(this).closest('tr').find('.permission-checkbox').prop('checked', $(this).is(':checked'));
         updateSelectAllStatus();
     });
-
-    // [이벤트: 세로줄 전체 선택]
     $(document).on('change', '.select-all', function() {
         const type = $(this).data('type');
-        const isChecked = $(this).is(':checked');
-        $('#permissionTableBody tr:visible').find(`.permission-checkbox[data-type="${type}"]`).prop('checked', isChecked);
+        $('#permissionTableBody tr:visible').find(`.permission-checkbox[data-type="${type}"]`).prop('checked', $(this).is(':checked'));
         updateSelectAllStatus();
     });
-
-    // [이벤트: 마스터 전체 선택]
     $('#selectAllMaster').on('change', function() {
-        const isChecked = $(this).is(':checked');
-        $('#permissionTableBody tr:visible input[type="checkbox"]').prop('checked', isChecked);
+        $('#permissionTableBody tr:visible input[type="checkbox"]').prop('checked', $(this).is(':checked'));
         updateSelectAllStatus();
     });
 
-    // [검색/저장 등 기타 로직]
+    // [검색 로직]
     $('#menuSearchInput').on('keyup', function() {
         const value = $(this).val().toLowerCase().trim();
         $('#permissionTableBody tr').each(function() {
@@ -429,42 +478,41 @@ $(document).ready(function () {
         });
         updateSelectAllStatus();
     });
+    $('#btnSearchClear').on('click', function() { $('#menuSearchInput').val('').trigger('keyup').focus(); });
 
-    $('#btnSearchClear').on('click', function() {
-        $('#menuSearchInput').val('').trigger('keyup').focus();
-    });
-
+    // [전체 저장]
     $('#btnSaveAll').on('click', function () {
-        if(!confirm("이 설정으로 권한을 변경하시겠습니까?")) return;
-        const permissions = [];
-        $('#permissionTableBody tr').each(function () {
-            const $row = $(this);
-            if($row.data('menu-id')) {
-                permissions.push({
-                    menuId: $row.data('menu-id'),
-                    roleNo: roleNo,
-                    crudRead: $row.find('[data-type="read"]').is(':checked') ? 1 : 0,
-                    crudCreate: $row.find('[data-type="create"]').is(':checked') ? 1 : 0,
-                    crudUpdate: $row.find('[data-type="update"]').is(':checked') ? 1 : 0,
-                    crudDelete: $row.find('[data-type="delete"]').is(':checked') ? 1 : 0
-                });
-            }
-        });
+        askConfirm("현재 설정된 행렬 데이터로 권한을 일괄 변경하시겠습니까?", function() {
+            const permissions = [];
+            $('#permissionTableBody tr').each(function () {
+                const $row = $(this);
+                if($row.data('menu-id')) {
+                    permissions.push({
+                        menuId: $row.data('menu-id'),
+                        roleNo: roleNo,
+                        crudRead: $row.find('[data-type="read"]').is(':checked') ? 1 : 0,
+                        crudCreate: $row.find('[data-type="create"]').is(':checked') ? 1 : 0,
+                        crudUpdate: $row.find('[data-type="update"]').is(':checked') ? 1 : 0,
+                        crudDelete: $row.find('[data-type="delete"]').is(':checked') ? 1 : 0
+                    });
+                }
+            });
 
-        $.ajax({
-            url: `/settings/api/roles/${roleNo}/permissions`,
-            type: 'POST',
-            contentType: 'application/json',
-            data: JSON.stringify(permissions),
-            success: function () {
-                alert("권한 설정이 저장되었습니다.");
-                loadData();
-            },
-            error: function () { alert("권한 저장 중 오류가 발생했습니다."); }
+            $.ajax({
+                url: `/settings/api/roles/${roleNo}/permissions`,
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(permissions),
+                success: function () {
+                    showToast("전체 권한 설정이 성공적으로 저장되었습니다.");
+                    loadData();
+                },
+                error: function () { showToast("권한 저장 중 오류가 발생했습니다.", "error"); }
+            });
         });
     });
 
-    // 이름 수정 관련 이벤트 (생략 없이 유지)
+    // [역할 이름 수정]
     $('#btnEditRoleName').on('click', function() {
         const currentName = $('#roleNameDisplay').text();
         $('#roleNameDisplay, #btnEditRoleName').addClass('d-none');
@@ -479,7 +527,10 @@ $(document).ready(function () {
 
     $('#btnSaveRoleName').on('click', function() {
         const newName = $('#roleNameInput').val().trim();
-        if(!newName) return alert("이름을 입력하세요.");
+        if(!newName) {
+            showToast("역할 이름을 입력해주세요.", "error");
+            return;
+        }
         $.ajax({
             url: `/settings/api/roles/${roleNo}`,
             type: 'PATCH',
@@ -488,8 +539,9 @@ $(document).ready(function () {
             success: function() {
                 $('#roleNameDisplay').text(newName);
                 $('#btnCancelRoleName').click();
-                alert("역할 이름이 변경되었습니다.");
-            }
+                showToast("역할 이름이 성공적으로 변경되었습니다.");
+            },
+            error: () => showToast("이름 변경 중 오류 발생", "error")
         });
     });
 

@@ -175,7 +175,7 @@ public class IssueMockTest {
 			// when: 한 개 파일 삭제 -> 추가
 			issueDto.setJobNo(jobNo);
 			issueDto.setTitle("수정된 제목");
-			issueDto.setComment("수정 코멘트");
+			issueDto.setChangeComment("수정 코멘트");
 			issueDto.setFilesNo(filesNo);
 			List<Integer> deleteFilesList = List.of(deleteNo);
 		    List<MultipartFile> newFiles = List.of(
