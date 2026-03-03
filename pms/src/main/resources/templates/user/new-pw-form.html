@@ -1,26 +1,65 @@
 <!DOCTYPE html>
-<html lang="ko" xmlns:th="https://www.thymeleaf.org/" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{common/layouts/default-layout}" layout:fragment="Content">
+<html lang="ko" xmlns:th="https://www.thymeleaf.org/" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+
+<!-- CoreUI CSS -->
+<link href="https://cdn.jsdelivr.net/npm/@coreui/coreui@5.0.0/dist/css/coreui.min.css" rel="stylesheet">
+</head>
+
+<!-- CoreUI JS -->
+<script src="https://cdn.jsdelivr.net/npm/@coreui/coreui@5.0.0/dist/js/coreui.bundle.min.js"></script>
+
 <head>
 <meta charset="UTF-8">
-<title>로그인</title>
+<title>새 비밀번호 설정</title>
 </head>
-<body>
-	<h2>새 비밀번호 설정</h2>
-	<p>새로운 비밀번호를 입력해 주세요.</p>
 
-	<div th:if="${error}" style="color: red;">
-		<p th:text="${error}"></p>
+<body>
+
+	<div layout:fragment="Content">
+
+		<div class="container min-vh-100 d-flex align-items-center justify-content-center">
+			<div class="row justify-content-center w-100">
+				<div class="col-md-6 col-lg-5">
+
+					<div class="card shadow-lg border-0 rounded-4">
+						<div class="card-body p-4">
+
+							<!-- 타이틀 -->
+							<div class="text-center mb-4">
+								<h3 class="fw-bold">새 비밀번호 설정</h3>
+								<p class="text-medium-emphasis small">새로운 비밀번호를 입력해주세요</p>
+							</div>
+
+							<!-- 에러 메시지 -->
+							<div th:if="${error}" class="alert alert-danger">
+								<p class="mb-0" th:text="${error}"></p>
+							</div>
+
+							<form th:action="@{/user/pw}" th:method="put">
+
+								<input type="hidden" name="token" th:value="${token}">
+
+								<!-- 새 비밀번호 -->
+								<div class="mb-3">
+									<label for="newPw" class="form-label"> 새 비밀번호 </label>
+									<input type="password" id="newPw" name="newPw" class="form-control" placeholder="새 비밀번호 입력" required>
+								</div>
+
+								<!-- 버튼 -->
+								<div class="d-grid">
+									<button type="submit" class="btn btn-primary rounded-3">비밀번호 변경 완료</button>
+								</div>
+
+							</form>
+
+						</div>
+					</div>
+
+				</div>
+			</div>
+		</div>
+
 	</div>
 
-	<form th:action="@{/user/pw}" method="post">
-		<input type="hidden" name="token" th:value="${token}">
-
-		<div>
-			<label for="newPw">새 비밀번호 : </label>
-			<input type="password" id="newPw" name="newPw" required>
-		</div>
-		<br>
-		<button type="submit">비밀번호 변경 완료</button>
-	</form>
 </body>
 </html>

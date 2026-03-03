@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="https://www.thymeleaf.org"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorate="~{common/layouts/default-layout}">
+<head>
+<style>
+/* 1. 테마별 변수 설정 */
+:root {
+	--pms-card-bg: #ffffff;
+	--pms-header-bg: #f8f9fa; /* 라이트모드 헤더 */
+	--pms-text: #212529;
+	--pms-text-muted: #6c757d;
+	--pms-border: #dee2e6;
+	--pms-input-bg: #ffffff;
+}
+
+[data-coreui-theme="dark"] {
+	--pms-card-bg: #2a303d;
+	--pms-header-bg: #1d222b; /* 📍 카드/테이블 헤더를 아주 어둡게 */
+	--pms-text: #d8dbe0;
+	--pms-text-muted: #a5a9b1;
+	--pms-border: #3c434f;
+	--pms-input-bg: #1b1f28;
+}
+
+/* 📍 2. 카드 및 객체 헤더 강제 암전 (bg-light 무력화) */
+[data-coreui-theme="dark"] .card-header.bg-light, [data-coreui-theme="dark"] .modal-footer.bg-light,
+	[data-coreui-theme="dark"] .table-light, [data-coreui-theme="dark"] .sticky-top.table-light
+	{
+	background-color: var(--pms-header-bg) !important;
+	color: var(--pms-text) !important;
+	border-color: var(--pms-border) !important;
+}
+
+/* 📍 3. 테이블 가독성 (Sticky Header 포함) */
+[data-coreui-theme="dark"] .table {
+	color: var(--pms-text) !important;
+}
+
+[data-coreui-theme="dark"] .table-hover tbody tr:hover {
+	background-color: rgba(255, 255, 255, 0.03) !important;
+	color: var(--pms-text) !important;
+}
+
+[data-coreui-theme="dark"] thead.table-light th {
+	background-color: var(--pms-header-bg) !important;
+	color: var(--pms-text) !important;
+	border-bottom: 2px solid var(--pms-border) !important;
+}
+
+/* 📍 4. 모달(Modal) 및 브레드크럼(Breadcrumb) 대응 */
+[data-coreui-theme="dark"] .modal-content {
+	background-color: var(--pms-card-bg) !important;
+	border: 1px solid var(--pms-border) !important;
+}
+
+[data-coreui-theme="dark"] .breadcrumb-item, [data-coreui-theme="dark"] .breadcrumb-item.active
+	{
+	color: var(--pms-text-muted) !important;
+}
+
+/* 📍 5. 입력창 및 검색바 (Input Group) */
+[data-coreui-theme="dark"] .input-group-text.bg-white {
+	background-color: var(--pms-input-bg) !important;
+	border-color: var(--pms-border) !important;
+	color: var(--pms-text-muted) !important;
+}
+
+[data-coreui-theme="dark"] .form-control {
+	background-color: var(--pms-input-bg) !important;
+	border-color: var(--pms-border) !important;
+	color: var(--pms-text) !important;
+}
+
+/* 📍 6. 권한 설정 리스트 그룹 */
+[data-coreui-theme="dark"] .list-group-item {
+	background-color: transparent !important;
+	border-color: var(--pms-border) !important;
+	color: var(--pms-text) !important;
+}
+
+[data-coreui-theme="dark"] .list-group-item.bg-light {
+	background-color: rgba(255, 255, 255, 0.05) !important;
+}
+
+/* 📍 7. 그림자 및 텍스트 강조 */
+[data-coreui-theme="dark"] .shadow-sm, [data-coreui-theme="dark"] .shadow-lg
+	{
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4) !important;
+}
+
+[data-coreui-theme="dark"] .text-dark, [data-coreui-theme="dark"] h3 {
+	color: var(--pms-text) !important;
+}
+
+/* 📍 8. 배지(Badge) 색상 최적화 */
+.bg-info {
+	background-color: #4361ee !important;
+}
+
+[data-coreui-theme="dark"] .bg-info {
+	background-color: #3f51b5 !important;
+}
+
+/* 참여팀 배지 (녹색 요청 반영) */
+.badge-team-green {
+	background-color: rgba(40, 167, 69, 0.1) !important;
+	color: #28a745 !important;
+	border: 1px solid rgba(40, 167, 69, 0.2) !important;
+}
+
+[data-coreui-theme="dark"] .badge-team-green {
+	background-color: rgba(52, 211, 153, 0.15) !important;
+	color: #34d399 !important;
+	border: 1px solid rgba(52, 211, 153, 0.3) !important;
+}
+</style>
+</head>
+<div layout:fragment="Content">
+	<div class="container-fluid">
+		<div class="card mb-4 border-top-primary border-top-4 shadow-sm">
+			<div
+				class="card-body d-flex justify-content-between align-items-center">
+				<div>
+					<nav aria-label="breadcrumb">
+						<ol class="breadcrumb mb-1">
+							<li class="breadcrumb-item"><a th:href="@{/settings}">설정</a></li>
+							<li class="breadcrumb-item active">그룹 상세 관리</li>
+						</ol>
+					</nav>
+					<div class="d-flex align-items-center">
+						<h3 class="mb-0">
+							<i class="cil-group me-2"></i> <span id="groupTitle"
+								class="fw-bold">그룹 정보 로딩 중...</span>
+						</h3>
+						<button type="button" id="btnEditGroupName"
+							class="btn btn-ghost-primary btn-sm ms-2 p-1" title="그룹명 수정">
+							<i class="cil-pencil"></i>
+						</button>
+						<span id="groupStatusBadge" class="badge ms-2"></span>
+					</div>
+				</div>
+				<div class="btn-group">
+					<button type="button" class="btn btn-outline-secondary"
+						onclick="history.back()">
+						<i class="cil-arrow-left"></i> 뒤로가기
+					</button>
+					<button type="button" id="btnToggleStatus" class="btn">
+						<i id="statusIcon"></i> <span id="statusText">로딩 중...</span>
+					</button>
+				</div>
+			</div>
+		</div>
+
+		<div class="row">
+			<div class="col-lg-7">
+				<div class="card mb-4 shadow-sm">
+					<div
+						class="card-header bg-light d-flex justify-content-between align-items-center py-3">
+						<strong class="fs-5"><i class="cil-user me-2"></i>소속 멤버
+							명단</strong>
+						<div class="d-flex align-items-center gap-2">
+							<button class="btn btn-outline-danger btn-sm d-none"
+								id="btnBatchRemove">
+								<i class="cil-user-unfollow me-1"></i> 선택 제외
+							</button>
+							<button class="btn btn-primary btn-sm px-3" id="btnOpenModal">
+								<i class="cil-user-follow me-1"></i> 멤버 추가
+							</button>
+							<span class="badge bg-info text-white ms-2" id="memberCount">0명</span>
+						</div>
+					</div>
+					<div class="card-body">
+						<div class="input-group mb-3">
+							<span class="input-group-text bg-white border-end-0"><i
+								class="cil-search"></i></span> <input type="text"
+								id="memberSearchInput" class="form-control border-start-0 ps-0"
+								placeholder="현재 그룹 멤버 내 검색 (이름, 아이디)...">
+						</div>
+						<div class="table-responsive"
+							style="max-height: 500px; overflow-y: auto;">
+							<table class="table table-hover align-middle border-bottom"
+								id="memberTable">
+								<thead class="table-light sticky-top">
+									<tr class="text-center">
+										<th style="width: 40px;"><input type="checkbox"
+											id="checkAllMembers" class="form-check-input"></th>
+										<th>아이디</th>
+										<th>이름</th>
+										<th>합류일</th>
+										<th>작업</th>
+									</tr>
+								</thead>
+								<tbody id="memberListTable"></tbody>
+							</table>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<div class="col-lg-5">
+				<div class="card mb-4 shadow-sm border-top-info border-top-4">
+					<div
+						class="card-header bg-light py-3 d-flex justify-content-between align-items-center">
+						<strong class="fs-5"><i class="cil-shield-alt me-2"></i>그룹
+							권한 설정</strong> <span id="saveStatus" class="badge bg-secondary opacity-50">자동
+							저장됨</span>
+					</div>
+					<div class="card-body">
+						<p class="text-muted small mb-3">
+							이 그룹에 부여할 역할을 선택하세요. <strong>그룹당 하나의 역할만</strong> 부여할 수 있으며, 선택 시
+							즉시 반영됩니다.
+						</p>
+						<div id="roleListContainer" class="list-group shadow-sm">
+							<div class="text-center py-5">
+								<div class="spinner-border text-primary" role="status"></div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="modal fade" id="userSearchModal" tabindex="-1"
+		aria-hidden="true">
+		<div class="modal-dialog modal-lg modal-dialog-scrollable">
+			<div class="modal-content border-0 shadow-lg">
+				<div class="modal-header bg-primary text-white">
+					<h5 class="modal-title">
+						<i class="cil-user-plus me-2"></i>새 멤버 일괄 추가
+					</h5>
+					<button type="button" class="btn-close btn-close-white"
+						data-coreui-dismiss="modal" aria-label="Close"></button>
+				</div>
+				<div class="modal-body p-4">
+					<div class="input-group mb-4 shadow-sm">
+						<span class="input-group-text bg-white border-end-0"><i
+							class="cil-filter"></i></span> <input type="text" id="modalFilterInput"
+							class="form-control border-start-0 ps-0"
+							placeholder="이름 또는 아이디로 검색...">
+					</div>
+					<div class="table-responsive">
+						<table class="table table-hover align-middle">
+							<thead class="table-light sticky-top">
+								<tr>
+									<th style="width: 45px;"><input type="checkbox"
+										id="checkAll" class="form-check-input"></th>
+									<th>아이디</th>
+									<th>이름</th>
+									<th>이메일</th>
+								</tr>
+							</thead>
+							<tbody id="modalSearchResultTable"></tbody>
+						</table>
+					</div>
+				</div>
+				<div class="modal-footer bg-light border-0">
+					<button type="button" class="btn btn-secondary"
+						data-coreui-dismiss="modal">취소</button>
+					<button type="button" class="btn btn-primary px-4" id="btnBatchAdd">선택
+						멤버 추가</button>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="modal fade" id="confirmModal" tabindex="-1"
+		aria-hidden="true">
+		<div class="modal-dialog modal-dialog-centered">
+			<div class="modal-content border-0 shadow">
+				<div class="modal-header bg-danger text-white">
+					<h5 class="modal-title">
+						<i class="cil-warning me-2"></i>작업 확인
+					</h5>
+					<button type="button" class="btn-close btn-close-white"
+						data-coreui-dismiss="modal" aria-label="Close"></button>
+				</div>
+				<div class="modal-body p-4 text-center">
+					<p id="confirmModalMessage" class="fs-5 mb-0">정말로 진행하시겠습니까?</p>
+				</div>
+				<div class="modal-footer bg-light border-0">
+					<button type="button" class="btn btn-secondary"
+						data-coreui-dismiss="modal">취소</button>
+					<button type="button" class="btn btn-danger px-4"
+						id="btnConfirmExecute">확인</button>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="toast-container position-fixed bottom-0 end-0 p-3"
+		style="z-index: 9999;">
+		<div id="pmsToast" class="toast hide" role="alert"
+			aria-live="assertive" aria-atomic="true">
+			<div class="toast-header text-white" id="toastHeader">
+				<strong class="me-auto" id="toastTitle">알림</strong>
+				<button type="button" class="btn-close btn-close-white"
+					data-coreui-dismiss="toast" aria-label="Close"></button>
+			</div>
+			<div class="toast-body" id="toastBody">메시지 내용입니다.</div>
+		</div>
+	</div>
+	
+	<script th:inline="javascript">
+    const GROUP_NO = [[${groupNo}]];
+    let searchModal;
+    let confirmModal;
+    let pmsToast;
+    let currentGroupName = ""; 
+    let confirmCallback = null;
+
+    // --- [공통 함수: Toast] ---
+    function showToast(message, type = 'success') {
+        const toastElement = document.getElementById('pmsToast');
+        const header = document.getElementById('toastHeader');
+        const title = document.getElementById('toastTitle');
+        const body = document.getElementById('toastBody');
+
+        header.className = `toast-header text-white ${type === 'success' ? 'bg-success' : 'bg-danger'}`;
+        title.innerText = type === 'success' ? '성공' : '오류';
+        body.innerText = message;
+
+        if (!pmsToast) pmsToast = new coreui.Toast(toastElement);
+        pmsToast.show();
+    }
+
+    // --- [공통 함수: Confirm] ---
+    function askConfirm(message, callback) {
+        document.getElementById('confirmModalMessage').innerText = message;
+        confirmCallback = callback;
+        confirmModal.show();
+    }
+
+    $(document).ready(function() {
+        // ✅ 모달 객체들을 최초 1회만 확실하게 초기화합니다.
+        searchModal = new coreui.Modal(document.getElementById('userSearchModal'));
+        confirmModal = new coreui.Modal(document.getElementById('confirmModal'));
+        
+        loadAllData();
+
+        // 확인 모달 승인 버튼 이벤트 (한 번만 등록)
+        $(document).on('click', '#btnConfirmExecute', function() {
+            if (confirmCallback) { 
+                confirmCallback(); 
+                confirmCallback = null; 
+            }
+            confirmModal.hide();
+        });
+
+        // 1. 데이터 로드 함수
+        function loadAllData() {
+            $.get(`/api/groups/${GROUP_NO}`, function(data) {
+                currentGroupName = data.groupName;
+                renderHeader(data);    
+                renderMembers(data.members);
+                loadAllRoles(data.roles); 
+            }).fail(() => showToast("데이터를 불러오는데 실패했습니다.", "error"));
+        }
+
+        function renderHeader(data) {
+            $('#groupTitle').text(data.groupName || '그룹 상세');
+            const $badge = $('#groupStatusBadge');
+            const $btn = $('#btnToggleStatus');
+            const $icon = $('#statusIcon');
+            const $text = $('#statusText');
+
+            if(data.status === 510) {
+                $badge.text('활성화').attr('class', 'badge ms-2 bg-success');
+                $btn.attr('class', 'btn btn-outline-warning');
+                $icon.attr('class', 'cil-media-pause me-1');
+                $text.text('비활성화');
+            } else {
+                $badge.text('비활성화').attr('class', 'badge ms-2 bg-warning');
+                $btn.attr('class', 'btn btn-outline-success');
+                $icon.attr('class', 'cil-media-play me-1');
+                $text.text('활성화');
+            }
+        }
+
+        function renderMembers(members) {
+            const $tbody = $('#memberListTable').empty();
+            $('#memberCount').text(`${members ? members.length : 0}명`);
+            $('#checkAllMembers').prop('checked', false); 
+            $('#btnBatchRemove').addClass('d-none');     
+
+            if(!members || members.length === 0) {
+                $tbody.append('<tr><td colspan="5" class="text-center py-5 text-muted">소속된 멤버가 없습니다.</td></tr>');
+                return;
+            }
+
+            members.forEach(m => {
+                $tbody.append(`<tr class="text-center member-row">
+                    <td><input type="checkbox" class="form-check-input member-check" value="${m.userId}"></td>
+                    <td><code>${m.userId}</code></td>
+                    <td class="text-start ps-4"><strong>${m.userName}</strong></td>
+                    <td class="small text-muted">${m.accessDate || '-'}</td>
+                    <td><button class="btn btn-sm btn-outline-danger btn-remove-member" data-id="${m.userId}">제외</button></td>
+                </tr>`);
+            });
+        }
+
+        // 2. 멤버 리스트 제어 로직
+        $('#memberSearchInput').on('input', function() {
+            const val = $(this).val().toLowerCase();
+            $('.member-row').each(function() { $(this).toggle($(this).text().toLowerCase().indexOf(val) > -1); });
+            $('.member-check:hidden').prop('checked', false);
+            updateMemberBatchButton();
+        });
+
+        $('#checkAllMembers').on('change', function() {
+            $('.member-check:visible').prop('checked', $(this).prop('checked'));
+            updateMemberBatchButton();
+        });
+
+        $(document).on('change', '.member-check', function() { updateMemberBatchButton(); });
+
+        function updateMemberBatchButton() {
+            const checkedCount = $('.member-check:checked').length;
+            const totalVisible = $('.member-check:visible').length;
+            $('#checkAllMembers').prop('checked', totalVisible > 0 && checkedCount === totalVisible);
+            if(checkedCount > 0) {
+                $('#btnBatchRemove').removeClass('d-none').html(`<i class="cil-user-unfollow me-1"></i> 선택 ${checkedCount}명 제외`);
+            } else {
+                $('#btnBatchRemove').addClass('d-none');
+            }
+        }
+
+        // 3. 기능 실행 (버튼 클릭 이벤트)
+
+        // [그룹명 수정]
+        $('#btnEditGroupName').on('click', function() {
+            const newName = prompt("수정할 그룹명을 입력하세요:", currentGroupName);
+            if (!newName || newName.trim() === "" || newName === currentGroupName) return;
+
+            $.ajax({
+                url: `/settings/api/groups/${GROUP_NO}`,
+                type: 'PUT',
+                contentType: 'application/json',
+                data: JSON.stringify({ groupNo: GROUP_NO, groupName: newName }),
+                success: function(res) {
+                    showToast("그룹명이 변경되었습니다."); 
+                    loadAllData(); 
+                }
+            });
+        });
+
+        // [상태 변경]
+        $('#btnToggleStatus').on('click', function() {
+            askConfirm("그룹 상태를 변경하시겠습니까?", function() {
+                $.ajax({
+                    url: `/settings/api/groups/${GROUP_NO}/toggle-status`,
+                    type: 'PATCH',
+                    success: function() { 
+                        showToast("상태가 변경되었습니다.");
+                        loadAllData(); 
+                    }
+                });
+            });
+        });
+
+        // [개별 제외]
+        $(document).on('click', '.btn-remove-member', function() {
+            const userId = $(this).data('id');
+            askConfirm(`멤버 [${userId}]님을 제외하시겠습니까?`, function() {
+                $.ajax({ 
+                    url: `/api/groups/${GROUP_NO}/members/${userId}`, 
+                    type: 'DELETE', 
+                    success: () => {
+                        showToast("멤버가 제외되었습니다.");
+                        loadAllData();
+                    } 
+                });
+            });
+        });
+
+        // [일괄 제외]
+        $('#btnBatchRemove').on('click', function() {
+            const selectedIds = [];
+            $('.member-check:checked').each(function() { selectedIds.push($(this).val()); });
+
+            askConfirm(`선택한 ${selectedIds.length}명의 멤버를 일괄 제외하시겠습니까?`, function() {
+                const removeRequests = selectedIds.map(id => $.ajax({
+                    url: `/api/groups/${GROUP_NO}/members/${id}`,
+                    type: 'DELETE'
+                }));
+
+                Promise.all(removeRequests).then(() => {
+                    showToast("선택 멤버가 제외되었습니다.");
+                    loadAllData();
+                }).catch(() => showToast("일부 처리 중 오류 발생", "error"));
+            });
+        });
+
+        // [멤버 추가 모달 오픈]
+        $('#btnOpenModal').on('click', function() {
+    $('#modalFilterInput').val('');
+    $('#checkAll').prop('checked', false);
+    
+    // 📍 데이터를 보낼 때 빈 keyword 파라미터를 명시적으로 포함합니다.
+    $.get(`/api/groups/${GROUP_NO}/available-users`, { keyword: '' }, function(users) {
+        const $tbody = $('#modalSearchResultTable').empty();
+        
+        if(!users || users.length === 0) {
+            $tbody.append('<tr><td colspan="4" class="text-center py-5 text-muted">추가할 사용자가 없습니다.</td></tr>');
+            $('#checkAll, #btnBatchAdd').prop('disabled', true);
+        } else {
+            $('#checkAll, #btnBatchAdd').prop('disabled', false);
+            users.forEach(u => {
+                $tbody.append(`<tr class="user-row-item">
+                    <td><input type="checkbox" class="form-check-input user-check" value="${u.userId}"></td>
+                    <td><code>${u.userId}</code></td>
+                    <td><strong>${u.userName || u.username}</strong></td>
+                    <td class="small text-muted">${u.email || '-'}</td>
+                </tr>`);
+            });
+        }
+        searchModal.show();
+    }).fail(function(xhr) {
+        // 에러 발생 시 상세 메시지 출력
+        console.error("Error Detail:", xhr.responseText);
+        showToast("사용자 목록을 불러오지 못했습니다. (Error 400)", "error");
+    });
+});
+
+        // [모달 내 멤버 추가 실행]
+        $('#btnBatchAdd').on('click', function() {
+            const selectedIds = [];
+            $('.user-check:checked').each(function() { selectedIds.push($(this).val()); });
+            if(selectedIds.length === 0) return;
+
+            const addRequests = selectedIds.map(id => $.ajax({
+                url: `/api/groups/${GROUP_NO}/members`,
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ userId: id })
+            }));
+
+            Promise.all(addRequests).then(() => { 
+                searchModal.hide(); 
+                showToast("멤버가 추가되었습니다.");
+                loadAllData(); 
+            });
+        });
+
+        // [권한 변경]
+        $(document).on('change', 'input[name="groupRole"]', function() {
+            const newRoleNo = $(this).val();
+            $('#saveStatus').text('저장 중...').attr('class', 'badge bg-warning opacity-100');
+            $.ajax({
+                url: `/api/groups/${GROUP_NO}/roles`,
+                type: 'PUT',
+                contentType: 'application/json',
+                data: JSON.stringify({ roleNo: parseInt(newRoleNo) }),
+                success: function() {
+                    setTimeout(() => {
+                        $('#saveStatus').text('변경 완료').attr('class', 'badge bg-success');
+                        loadAllData();
+                        setTimeout(() => $('#saveStatus').text('자동 저장됨').attr('class', 'badge bg-secondary opacity-50'), 2000);
+                    }, 500);
+                }
+            });
+        });
+
+        // [모달 필터링 및 체크박스]
+        $('#modalFilterInput').on('input', function() {
+            const val = $(this).val().toLowerCase();
+            $('.user-row-item').each(function() { $(this).toggle($(this).text().toLowerCase().indexOf(val) > -1); });
+            updateModalCheckAllStatus();
+        });
+
+        $('#checkAll').on('change', function() {
+            $('.user-check:visible').prop('checked', $(this).prop('checked'));
+        });
+
+        function updateModalCheckAllStatus() {
+            const $visible = $('.user-check:visible');
+            $('#checkAll').prop('checked', $visible.length > 0 && $visible.length === $visible.filter(':checked').length);
+        }
+
+        function loadAllRoles(assignedRoles) {
+            const assignedRoleNo = (assignedRoles && assignedRoles.length > 0) ? assignedRoles[0].roleNo : null;
+            $.get('/api/groups/roles', function(allRoles) {
+                const $container = $('#roleListContainer').empty();
+                allRoles.forEach(role => {
+                    const isChecked = role.roleNo === assignedRoleNo;
+                    $container.append(`
+                        <label class="list-group-item d-flex justify-content-between align-items-center py-3 ${isChecked ? 'bg-light border-primary' : ''}" style="cursor: pointer;">
+                            <div>
+                                <input class="form-check-input me-3 role-radio" type="radio" name="groupRole" 
+                                       value="${role.roleNo}" ${isChecked ? 'checked' : ''}>
+                                <span class="${isChecked ? 'fw-bold text-primary' : ''}">${role.roleName}</span>
+                            </div>
+                            ${isChecked ? '<span class="badge bg-primary rounded-pill shadow-sm">현재 권한</span>' : ''}
+                        </label>
+                    `);
+                });
+            });
+        }
+    });
+</script>
+</div>
+</html>

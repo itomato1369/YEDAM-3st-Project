@@ -1,5 +1,7 @@
 package com.pms.user.web;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -8,6 +10,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.pms.user.service.UserService;
@@ -43,7 +47,7 @@ public class UserController {
 			bindingResult.rejectValue("userId", "newUserErr", e.getMessage());
 			return "user/register-form";
 		}
-		
+
 		rttr.addFlashAttribute("success", "회원가입이 완료되었습니다.");
 		return "redirect:/user/login";
 	}
@@ -57,5 +61,35 @@ public class UserController {
 		}
 		model.addAttribute("loginDto", new LoginDto());
 		return "user/login-form";
+	}
+
+	// 이메일 발송
+	@PostMapping("/updateEmailSend")
+	@ResponseBody
+	public ResponseEntity<String> sendResetMail(
+			@RequestParam("userId") String userId,
+			@RequestParam("newUsername") String newUsername,
+			@RequestParam("newEmail") String newEmail,
+			RedirectAttributes rttr) {
+		try {
+			userService.sendCheckEmail(userId, newUsername, newEmail);
+			return ResponseEntity.ok("success");
+		} catch (Exception e) {
+			rttr.addFlashAttribute("error", "메일 발송 중 오류가 발생하였습니다.");
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+		}
+	}
+
+	// 이메일 변경
+	@GetMapping("/updateEmail")
+	public String verifyEmail(@RequestParam String token, RedirectAttributes rttr) {
+		try {
+			userService.modifyEmail(token);
+			rttr.addFlashAttribute("msg", "정보 변경이 성공적으로 완료되었습니다.");
+			return "redirect:/user/login";
+		} catch (Exception e) {
+			rttr.addFlashAttribute("error", e.getMessage());
+			return "redirect:/error";
+		}
 	}
 }

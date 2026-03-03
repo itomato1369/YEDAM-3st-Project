@@ -11,16 +11,17 @@
 		this는 클릭 event가 발생한 자기자신
 		*/
 // 일감 담당자 선택 모달
-const userModal = document.getElementById("userSelectModal");
-const managerInput = document.getElementById("managerId");
+document.addEventListener("click", function (e) {
+  const item = e.target.closest(".user-item");
+  if (!item) return;
 
-userModal.querySelectorAll(".user-item").forEach((item) => {
-  item.addEventListener("click", function () {
-    managerInput.value = this.textContent.trim();
+  const userModal = document.getElementById("userSelectModal");
+  const userId = document.getElementById("userId");
+  const managerName = document.getElementById("managerName");
 
-    // 이미 열려있는 modal 인스턴스를 가져와서 닫는
-    // Bootstrap 공식 방식
-    const modal = bootstrap.Modal.getInstance(userModal);
-    modal.hide();
-  });
+  userId.value = item.dataset.id;
+  managerName.value = item.dataset.name;
+
+  const modal = bootstrap.Modal.getInstance(userModal);
+  modal.hide();
 });

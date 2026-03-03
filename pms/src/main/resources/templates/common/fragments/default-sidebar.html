@@ -3,6 +3,7 @@
 	  <div class="sidebar sidebar-dark sidebar-fixed border-end" id="sidebar" th:fragment="DefaultSidebar">
       <div class="sidebar-header border-bottom">
         <div class="sidebar-brand">
+        
           <svg class="sidebar-brand-full" width="88" height="32" alt="CoreUI Logo">
             <use xlink:href="/coreui/assets/brand/coreui.svg#full"></use>
           </svg>
@@ -13,54 +14,77 @@
         <button class="btn-close d-lg-none" type="button" data-coreui-theme="dark" aria-label="Close" onclick="coreui.Sidebar.getInstance(document.querySelector(&quot;#sidebar&quot;)).toggle()"></button>
       </div>
       <ul class="sidebar-nav" data-coreui="navigation" data-simplebar data-simplebar-auto-hide="true">
-        <li class="nav-item"><a class="nav-link" href="index.html">
+        <li class="nav-item"><a class="nav-link" th:href="@{/home}">
             <svg class="nav-icon">
               <use xlink:href="/coreui/vendors/@coreui/icons/svg/free.svg#cil-speedometer"></use>
             </svg> PMS Project<span class="badge badge-sm bg-info ms-auto"></span></a>
-        </li>
-        <li class="nav-title"></li>
-        <li class="nav-item"><a class="nav-link" href="charts.html">
-            <svg class="nav-icon">
-              <use xlink:href="/coreui/vendors/@coreui/icons/svg/free.svg#cil-chart-pie"></use>
-            </svg> 초기화면</a>
-        </li>
-        <li class="nav-item"><a class="nav-link" href="charts.html">
-            <svg class="nav-icon">
-              <use xlink:href="/coreui/vendors/@coreui/icons/svg/free.svg#cil-chart-pie"></use>
-            </svg> 마이페이지</a>
-        </li>
-        <li class="nav-group"><a class="nav-link nav-group-toggle" href="#">
-            <svg class="nav-icon">
-              <use xlink:href="/coreui/vendors/@coreui/icons/svg/free.svg#cil-puzzle"></use>
-            </svg> 프로젝트</a>
-          <ul class="nav-group-items compact">
-            <li class="nav-item"> <a class="nav-link" href="temptest"><span class="nav-icon"><span class="nav-icon-bullet"></span></span> 개요</a> </li>
-            <li class="nav-item"> <a class="nav-link" href="temptest"><span class="nav-icon"><span class="nav-icon-bullet"></span></span> 작업내역</a> </li>
-            <li class="nav-item"> <a class="nav-link" href="temptest"><span class="nav-icon"><span class="nav-icon-bullet"></span></span> 일감</a> </li>
-            <li class="nav-item"> <a class="nav-link" href="temptest"><span class="nav-icon"><span class="nav-icon-bullet"></span></span> 소요시간</a> </li>
-            <li class="nav-item"> <a class="nav-link" href="temptest"><span class="nav-icon"><span class="nav-icon-bullet"></span></span> 간트차트</a> </li>
-            <li class="nav-item"> <a class="nav-link" href="kanbantest"><span class="nav-icon"><span class="nav-icon-bullet"></span></span> 달력</a> </li>
-            <li class="nav-item"> <a class="nav-link" href="a"><span class="nav-icon"><span class="nav-icon-bullet"></span></span> 뉴스</a> </li>
-            <li class="nav-item"> <a class="nav-link" href="b"><span class="nav-icon"><span class="nav-icon-bullet"></span></span> 문서</a> </li>
-            <li class="nav-item"> <a class="nav-link" href="c"><span class="nav-icon"><span class="nav-icon-bullet"></span></span> 위키</a> </li>
-            <li class="nav-item"> <a class="nav-link" href="d"><span class="nav-icon"><span class="nav-icon-bullet"></span></span> 파일</a> </li>
+            <ul class="nav-group-items compact">
           </ul>
         </li>
-        <li class="nav-item"><a class="nav-link" href="charts.html">
-            <svg class="nav-icon">
-              <use xlink:href="/coreui/vendors/@coreui/icons/svg/free.svg#cil-chart-pie"></use>
-            </svg> 관리</a>
+        <li class="nav-title"></li>
+        <li class="nav-item"><a class="nav-link" th:href="@{/home}">
+            <i class="nav-icon cil-newspaper"></i>대시보드</a>
         </li>
-        <li class="nav-item"><a class="nav-link" href="charts.html">
-            <svg class="nav-icon">
-              <use xlink:href="/coreui/vendors/@coreui/icons/svg/free.svg#cil-chart-pie"></use>
-            </svg> 도움말</a>
+        <li class="nav-group">
+        	<a class="nav-link js-direct-link" 
+		     th:href="@{/}" 
+		     style="cursor:pointer;">
+		     <i class="nav-icon cil-user"></i>마이페이지</a>
+		  </a>
+            <!--/* <ul class="nav-group-items compact">
+            	<li class="nav-item"> <a class="nav-link" href="c"><span class="nav-icon"><span class="nav-icon-bullet"></span></span> 테슫</a> </li>
+            	<li class="nav-item"> <a class="nav-link" href="d"><span class="nav-icon"><span class="nav-icon-bullet"></span></span> 테트</a> </li>
+            </ul> */-->
         </li>
+		<li class="nav-group" name="project">
+			<a class="nav-link js-direct-link" th:href="@{/project/read}" style="cursor:pointer;">
+				<i class="nav-icon cil-layers"></i> 프로젝트
+			</a>
+			<ul class="nav-group-items compact" th:if="${projectCode != null}">
+			  <li class="nav-item"> <a class="nav-link" th:href="@{/project/user/{code}/read(code=${projectCode})}"><span class="nav-icon"><span class="nav-icon-bullet"></span></span> 개요</a> </li>
+			  <li class="nav-item"> <a class="nav-link" th:href="@{/project/user/{code}/issue/history/read(code=${projectCode})}"><span class="nav-icon"><span class="nav-icon-bullet"></span></span> 작업내역</a> </li>
+			  <li class="nav-item"> <a class="nav-link" th:href="@{/project/user/{code}/issue/list/read(code=${projectCode})}"><span class="nav-icon"><span class="nav-icon-bullet"></span></span> 일감</a> </li>
+			  <li class="nav-item"> <a class="nav-link" th:href="@{/project/user/{code}/issue/work/list/read(code=${projectCode})}"><span class="nav-icon"><span class="nav-icon-bullet"></span></span> 소요시간</a> </li>
+			   <li class="nav-item"> <a class="nav-link" th:href="@{/project/user/{code}/issue/work/report/list/read(code=${projectCode})}"><span class="nav-icon"><span class="nav-icon-bullet"></span></span> 보고서</a> </li>
+			  <li class="nav-item"> <a class="nav-link" th:href="@{/project/user/{code}/issue/gantt/read(code=${projectCode})}"><span class="nav-icon"><span class="nav-icon-bullet"></span></span> 간트차트</a> </li>
+			</ul>
+			<!--/* <ul class="nav-group-items compact" th:unless="${projectCode != null}">
+			  <li class="nav-item"> <a class="nav-link" href="#"><span class="nav-icon"><span class="nav-icon-bullet"></span></span> 작업내역</a> </li>
+			  <li class="nav-item"> <a class="nav-link" href="#"><span class="nav-icon"><span class="nav-icon-bullet"></span></span> 일감</a> </li>
+			  <li class="nav-item"> <a class="nav-link" href="#"><span class="nav-icon"><span class="nav-icon-bullet"></span></span> 간트차트</a> </li>
+			</ul> */-->
+		</li>
+        <li sec:authorize="hasRole('ROLE_ADMIN')" class="nav-item"><a class="nav-link" th:href="@{/settings/}">
+            <i class="nav-icon cil-sitemap"></i>관리</a>
+        </li>
+        <!--/* <li class="nav-item"><a class="nav-link" href="charts.html">
+            <i class="nav-icon cil-info"></i> 도움말</a>
+        </li> */-->
       </ul>
       <div class="sidebar-footer border-top d-none d-md-flex">     
         <button class="sidebar-toggler" type="button" data-coreui-toggle="unfoldable"></button>
       </div>
     </div>
-    
-
+    <script>
+    (function() {
+        // 캡처링 모드(true)를 사용하여 라이브러리보다 먼저 실행되게 함
+        document.addEventListener('click', function(e) {
+            const target = e.target.closest('.js-direct-link');
+            
+            if (target) {
+                const parent = target.closest('.nav-group');
+                
+                // 메뉴가 닫혀있을 때만 강제 이동
+                if (parent && !parent.classList.contains('show')) {
+                    const url = target.getAttribute('href');
+                    if (url && url !== '#') {
+                        // 모든 이벤트를 중단시키고 즉시 이동
+                        e.stopImmediatePropagation();
+                        window.location.href = url;
+                    }
+                }
+            }
+        }, true); // true: (캡처링)
+    })();
+    </script>
 </html>

@@ -36,9 +36,9 @@ public class UserDto {
 
 	public UserEntity toEntity(String encodedPw) {
 		return UserEntity.builder()
-				.userId(this.userId.trim())
+				.userId(this.userId == null ? null : this.userId.trim())
 				.passwd(encodedPw)
-				.username(this.username.trim())
+				.username(this.username == null ? null : this.username.trim())
 				.admin(this.admin)
 				.status(this.status)
 				.createtime(LocalDateTime.now())

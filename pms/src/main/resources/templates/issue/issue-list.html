@@ -5,6 +5,23 @@
 	layout:fragment="Content">
 <head>
 <meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<!-- 검색기능 css -->
+<!-- Bootstrap5 icon사용 -->
+<link rel="stylesheet"
+	href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+<link rel="stylesheet"
+	href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.10.0/css/bootstrap-datepicker.min.css" />
+
+<!-- 1. jQuery = JavaScript 라이브러리-->
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<!-- 2. bootstrap-datepicker 본체 -->
+<script
+	src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.10.0/js/bootstrap-datepicker.min.js"></script>
+<!-- 3. 한국어 캘린더-->
+<script
+	src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.10.0/locales/bootstrap-datepicker.ko.min.js"></script>
+<meta charset="UTF-8" />
 <title>일감 전체 조회</title>
 </head>
 <body>
@@ -12,103 +29,111 @@
 		<div class="mb-4 mt-3">
 			<!-- #lists.isEmpty는 thymeleaf의 유틸함수 -->
 			<h3 class="fw-bold">
-				<label th:if="${not #lists.isEmpty(issueList)}"
-					th:text="${issueList[0].projectName}" class="text-primary"></label>
-				<small class="text-muted">의 일감 조회</small>
+				<span th:text="${project.projectName}" class="text-primary"></span>
+				<small class="text-muted">의 전체 일감 목록</small>
 			</h3>
 		</div>
 
-		<!-- 검색 조건-->
-		<form th:action="@{/issue/list}" method="get" id="searchForm">
+		<!-- 검색 조건 form -->
+		<form th:action="@{/project/user/{projectCode}/issue/list/read(projectCode=${projectCode})}"
+				  method="get" 
+				  id="searchForm">
+			<!-- 검색조건 입력 영역 -->
 			<div id="dynamicSearch" class="row g-3 mb-3">
-				<div
-					th:replace="~{common/fragments/issue/dynamic-issue-list-search}"></div>
+				<div th:replace="~{common/fragments/issue/dynamic-issue-list-search}"></div>
 			</div>
 
-			<div>
-				<button
-					th:onclick="|location.href='@{/project/{code}/issue/new(code=${projectCode})}'|"
-					class="btn btn-primary text-white d-inline-flex">일감 추가</button>
-				<button th:onclick="|location.href='@{/work/list}'|"
-					class="btn btn-primary text-white d-inline-flex">소요시간 조회</button>
-			</div>
-
-			<div
-				class="mb-3 d-flex align-items-stretch justify-content-end gap-2">
+			<!-- 검색조건 추가 버튼 + 조회 버튼 -->
+			<div class="mb-3 d-flex align-items-center justify-content-end gap-2">
+			<!-- 내 일감만 보기 toggleMyIssue(this) 함수 -->
+				<div class="form-check form-switch mb-0">
+					<input class="form-check-input"
+						 type="checkbox" 
+						 id="showOnlyMe"
+						 name="showOnlyMe" 
+						 value="Y" 
+						 th:checked="${showOnlyMe == 'Y'}"
+						 onchange="toggleMyIssue(this)"
+						 autocomplete="off" />
+						<!-- checked는 서버에 넘어온 데이터에 따라 체크박스 체크하느냐 마느냐
+						그리고 내 소요시간만 보기 누르면 바로 동적쿼리 작동 -->
+					<label class="form-check-label" for="showOnlyMe">내 일감만 보기</label>
+				</div>
+				<!-- dropdown 영역 -->
 				<div class="dropdown me-2">
-					<button class="btn btn-secondary dropdown-toggle" type="button"
+					<button class="btn btn-primary dropdown-toggle" type="button"
 						data-bs-toggle="dropdown">검색조건 추가</button>
-
 					<ul class="dropdown-menu">
 						<li><a class="dropdown-item add-condition"
-							data-target="field-projectName" href="#">프로젝트 명</a></li>
+									data-target="field-jobTitle" href="#">제목</a></li>
 						<li><a class="dropdown-item add-condition"
-							data-target="field-jobNo" href="#">일감번호</a></li>
+									data-target="field-jobStatusNo" href="#">일감 상태</a></li>
 						<li><a class="dropdown-item add-condition"
-							data-target="field-jobtitle" href="#">제목</a></li>
+									data-target="field-jobTypeNo" href="#">일감 유형</a></li>
 						<li><a class="dropdown-item add-condition"
-							data-target="field-jobStatus" href="#">상태</a></li>
+									data-target="field-priority" href="#">우선순위</a></li>
 						<li><a class="dropdown-item add-condition"
-							data-target="field-jobType" href="#">유형</a></li>
+									data-target="field-username" href="#">담당자</a></li>
 						<li><a class="dropdown-item add-condition"
-							data-target="field-priority" href="#">우선순위</a></li>
+									data-target="field-startDate" href="#">일감 시작날짜</a></li>
 						<li><a class="dropdown-item add-condition"
-							data-target="field-manager" href="#">담당자</a></li>
+									data-target="field-endDate" href="#">일감 마감날짜</a></li>
 						<li><a class="dropdown-item add-condition"
-							data-target="field-startDate" href="#">일감 시작날짜</a></li>
-						<li><a class="dropdown-item add-condition"
-							data-target="field-endDate" href="#">일감 마감날짜</a></li>
-						<li><a class="dropdown-item add-condition"
-							data-target="field-progress" href="#">진척도</a></li>
+									data-target="field-progress" href="#">진척도</a></li>
 					</ul>
 				</div>
+				<!-- 조회버튼 -->
+				<button type="submit" class="btn btn-primary">일감 조회</button>
+				
+				<!--  소요시간 조회로 이동 -->
+				<a
+					th:href="@{/project/user/{projectCode}/issue/work/list/read(projectCode=${projectCode})}"
+					class="btn btn-primary d-inline-flex">소요시간 조회</a>
 
-				<div>
-					<button type="submit" class="btn btn-primary"></button>
-					<button
-						th:onclick="|location.href='@{/project/{code}/issue/new(code=${projectCode})}'|"
-						class="btn btn-primary text-white d-inline-flex">일감 추가</button>
-					<button th:onclick="|location.href='@{/work/list}'|"
-						class="btn btn-primary text-white d-inline-flex">소요시간 조회</button>
-				</div>
+				<!-- 일감 등록으로 이동 -->
+				<a
+					th:href="@{/project/user/{projectCode}/issue/create(projectCode=${projectCode})}"
+					class="btn btn-primary d-inline-flex">일감 등록</a>
 			</div>
 		</form>
-
-		<!-- 일감 전체 조회되는 테이블-->
-		<table class="table table-hover text-center">
-			<thead class="table-light">
+		<!-- 검색 조건에 따라 일감 전체 조회되는 테이블-->
+		<table class="table table-hover text-center ">
+			<thead>
 				<tr>
-					<th>프로젝트 명</th>
-					<th><i class="bi bi-hash me-1"></i>일감번호</th>
-					<th><i class="bi bi-card-text me-1"></i>제목</th>
-					<th><i class="bi bi-tags me-1"></i>상태</th>
+					<th><i class="bi bi-card-text me-1"></i>일감 제목</th>
+					<th><i class="bi bi-tags me-1"></i>일감 상태</th>
 					<th>유형</th>
 					<th>우선순위</th>
 					<th><i class="bi bi-person-badge me-1"></i>담당자</th>
-					<!-- 수정하기 버튼/ 상세조회 버튼 -->
 					<th><i class="bi bi-gear me-1"></i>수정/상세</th>
 				</tr>
 			</thead>
 			<tbody>
 				<tr th:each="issue : ${issueList}">
-					<td th:text="${issue.jobNo}">1</td>
-					<td th:text="${issue.title}">제목</td>
-					<td th:text="${issue.jobStatusNo}">상태</td>
-					<td th:text="${issue.priority}">우선순위</td>
-					<td th:text="${issue.managerId}">담당자</td>
-
+					<td th:text="${issue.title}"></td>
+					<td th:text="${issue.jobStatus}"
+						  th:data-job-status-no="${issue.jobStatusNo}"></td>
+					<td th:text="${issue.jobType}"
+						  th:data-job-type-no="${issue.jobTypeNo}"></td>
+					<td th:text="${issue.priorityName}"
+						  th:data-priority="${issue.priority}"></td>
+					<td th:text="${issue.username}"></td>
 					<td>
 						<div class="btn-group" role="group">
-						<!-- 상세랑 수정이랑 같음 -->
-							<a th:href="@{/issue/info(jobNo=${issue.jobNo})}"
-								class="btn btn-sm btn-outline-info">수정</a>
+							<a th:href="@{/project/user/{projectCode}/issue/update(projectCode=${projectCode}, jobNo=${issue.jobNo})}"
+								 class="btn btn-sm btn-primary">수정</a> 
+							<a th:href="@{/project/user/{projectCode}/issue/info/read(projectCode=${projectCode}, jobNo=${issue.jobNo})}"
+								 class="btn btn-sm btn-primary"> 상세</a>
 						</div>
 					</td>
+				</tr>
+			    <tr th:if="${#lists.isEmpty(issueList)}">
+					<td colspan="8">등록된 일감 내역이 없습니다</td>
 				</tr>
 			</tbody>
 		</table>
 	</div>
-
-	<script th:src="{/js/issue/dynamicSearch.js}"></script>
+	<!-- script -->
+	<script th:src="@{/js/issue/dynamicSearch.js}"></script>
 </body>
 </html>

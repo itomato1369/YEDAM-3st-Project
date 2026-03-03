@@ -7,12 +7,12 @@
 
 	<select id="selectGroupAll"
 		resultType="com.pms.setting.groups.vo.GroupsVO">
-		SELECT
+		SELECT DISTINCT
 		g.GROUP_NO AS groupNo,
 		g.GROUPNAME AS groupName,
 		g.STATUS AS status,
 		c.COMMON_NAME AS statusName,
-		(SELECT COUNT(*) FROM MEMBERS m WHERE m.GROUPID = g.GROUP_NO) AS memberCount
+		(SELECT COUNT(*) FROM MEMBERS m WHERE m.GROUP_NO = g.GROUP_NO) AS memberCount
 		FROM GROUPS g
 		LEFT JOIN COMMON c
 		ON g.STATUS = c.COMMON_NO
@@ -28,7 +28,7 @@
 		g.GROUPNAME AS groupName,
 		g.STATUS AS status,
 		c.COMMON_NAME AS statusName,
-		(SELECT COUNT(*) FROM MEMBERS m WHERE m.GROUPID = g.GROUP_NO) AS memberCount
+		(SELECT COUNT(*) FROM MEMBERS m WHERE m.GROUP_NO = g.GROUP_NO) AS memberCount
 		FROM GROUPS g
 		LEFT JOIN COMMON c
 		ON g.STATUS = c.COMMON_NO
@@ -64,11 +64,17 @@
 		END
 		WHERE GROUP_NO = #{groupNo}
 	</update>
-
-	<update id="updateGroupName"
-		parameterType="com.pms.setting.groups.vo.GroupsVO">
-		UPDATE groups
-		SET GROUPNAME = #{groupName} -- VO의 groupName 필드 사용
-		WHERE GROUP_NO = #{groupNo} -- VO의 groupNo 필드 사용
-	</update>
+	
+	<update id="updateGroupDetail" parameterType="com.pms.setting.groups.vo.GroupsVO">
+        UPDATE groups
+        <set>
+            <if test="groupName != null and groupName != ''">
+                GROUPNAME = #{groupName},
+            </if>
+            <if test="status != null">
+                status = #{status},
+            </if>
+            </set>
+        WHERE group_no = #{groupNo}
+    </update>
 </mapper>

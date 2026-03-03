@@ -1,7 +1,5 @@
 <th:block th:fragment="IssueUpdateModal">
 	<!-- 확인 Modal -->
-
-	<link rel="stylesheet" th:href="@{/css/modal.css}" />
 	<div class="modal fade" id="issueUpdateModal" tabindex="-1" aria-labelledby="issueUpdateModalLabel" aria-hidden="true">
 		<div class="modal-dialog modal-dialog-centered">
 			<div class="modal-content">
@@ -10,13 +8,11 @@
 				</div>
 
 				<div class="modal-body">수정하시겠습니까?</div>
-
 				<div class="modal-footer">
-					<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
+					<button type="button" class="btn btn-primary" data-bs-dismiss="modal">취소</button>
 					<button type="button" class="btn btn-primary" id="updateSubmit">확인</button>
 				</div>
 			</div>
 		</div>
 	</div>
-	<script th:src="@{/js/issue/issue-update-modal.js}"></script>
 </th:block>

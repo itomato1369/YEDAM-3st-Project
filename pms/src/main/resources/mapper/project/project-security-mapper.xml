@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.pms.project.mapper.ProjectSecurityMapper">
+	<select id="checkAuth" resultType="boolean">
+		SELECT CASE WHEN COUNT(*) > 0 THEN 1 ELSE 0 END
+		FROM VW_SECURITY_AUTH v
+		
+    	<if test="value != null">
+    	JOIN G_PROJECT gp ON v.GROUP_NO = gp.GROUP_NO
+    	JOIN PROJECT p ON gp.PROJECT_NO = p.PROJECT_NO
+    	</if>
+    	
+		WHERE v.user_id = #{userId}
+		
+		<if test="value != null">
+    	AND p.project_code = #{value}
+    	</if>
+		
+		AND v.menu_id = #{menuId}
+		AND (
+		(#{method} = 'READ' AND V.CRUD_READ = 1) OR
+		(#{method} = 'CREATE' AND V.CRUD_CREATE = 1) OR
+		(#{method} = 'UPDATE' AND V.CRUD_UPDATE = 1) OR
+		(#{method} = 'DELETE' AND V.CRUD_DELETE = 1)
+		)
+	</select>
+
+	<select id="checkPm" resultType="boolean">
+		SELECT CASE WHEN COUNT(*) > 0 THEN 1 ELSE 0 END
+		FROM USERS u
+		JOIN MEMBERS m ON u.USER_ID = m.USER_ID
+		JOIN G_PROJECT g ON m.GROUP_NO = g.GROUP_NO
+		JOIN PROJECT p ON g.PROJECT_NO = p.PROJECT_NO
+		WHERE u.USER_ID = #{userId}
+		AND p.PROJECT_CODE = #{projectCode}
+		AND g.PM = 1
+	</select>
+	
+	<select id="selectAllMenus" resultType="ProjectSecurityMenuDto">
+        SELECT 
+            MENU_ID as menuId,
+            MENU_NAME as menuName,
+            URL_DATA as urlData,
+            TYPE as type
+        FROM MENU
+    </select>
+</mapper>

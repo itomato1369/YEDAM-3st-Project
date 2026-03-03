@@ -7,15 +7,20 @@ import org.springframework.format.annotation.DateTimeFormat;
 
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 
 @Getter
 @Setter
+@ToString
 @Alias("WorkReportDto")
 public class WorkReportDto {
-	private int level; // 계층 보여주는 레벨과 권한 정보
+	private String type; // 보고서 종류 일감, 프로젝트, 사용자, 주월별 
 	private String userId;
+	private String username; // 담당자
+	private String managerId; 
 	// 프로젝트 정보
 	private Integer projectNo;
+	private String projectCode;
 	private String projectName;
 	// 일감정보 
 	private Integer jobNo;
@@ -25,9 +30,12 @@ public class WorkReportDto {
 	@DateTimeFormat(pattern = "yyyy-MM-dd")
 	private Date endDate;
 	// 작업분류
+	private Integer workDetailsNo;
 	private String workType;
 	private String workers;
 	private Integer workTime;
+	@DateTimeFormat(pattern = "yyyy-MM-dd")
+	private Date workDate;
 	// sql의 AS 별칭 붙인 값들
 	private String workMonth;
 	private String workWeek;

@@ -4,6 +4,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
@@ -53,7 +54,7 @@ public class PwrTokenController {
 	}
 
 	// PW 변경
-	@PostMapping("/pw")
+	@PutMapping("/pw")
 	public String updatePwProcess(@RequestParam("token") String token, @RequestParam("newPw") String newPw,
 			RedirectAttributes rttr) {
 		

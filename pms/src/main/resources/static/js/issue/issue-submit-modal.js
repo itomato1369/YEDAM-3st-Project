@@ -5,5 +5,9 @@
  * 일감 등록 모달에서 전송
  */
 document.getElementById("confirmSubmit").addEventListener("click", function () {
+	
   document.getElementById("issueInsert").submit();
+  
+
+  
 });
