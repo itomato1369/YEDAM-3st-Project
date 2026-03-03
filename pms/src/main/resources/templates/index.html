@@ -181,7 +181,7 @@
 							</div>
 						</div>
 					</div>
-					<div class="col-md-4">
+					<div sec:authorize="hasRole('ROLE_ADMIN')" class="col-md-4">
 						<div class="card text-center h-100 border-0 shadow-sm"
 							th:onclick="|location.href='@{/settings/}'|"
 							style="cursor: pointer">

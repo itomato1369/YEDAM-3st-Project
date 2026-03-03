@@ -54,12 +54,12 @@
 			  <li class="nav-item"> <a class="nav-link" href="#"><span class="nav-icon"><span class="nav-icon-bullet"></span></span> 간트차트</a> </li>
 			</ul> */-->
 		</li>
-        <li class="nav-item"><a class="nav-link" th:href="@{/settings/}">
+        <li sec:authorize="hasRole('ROLE_ADMIN')" class="nav-item"><a class="nav-link" th:href="@{/settings/}">
             <i class="nav-icon cil-sitemap"></i>관리</a>
         </li>
-        <li class="nav-item"><a class="nav-link" href="charts.html">
+        <!--/* <li class="nav-item"><a class="nav-link" href="charts.html">
             <i class="nav-icon cil-info"></i> 도움말</a>
-        </li>
+        </li> */-->
       </ul>
       <div class="sidebar-footer border-top d-none d-md-flex">     
         <button class="sidebar-toggler" type="button" data-coreui-toggle="unfoldable"></button>

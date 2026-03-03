@@ -14,13 +14,13 @@
 
 		<ul class="header-nav d-none d-lg-flex">
 			<li class="nav-item">
-				<a class="nav-link" th:href="@{/home}">Dashboard</a>
+				<a class="nav-link" th:href="@{/home}">대시보드</a>
 			</li>
 			<li class="nav-item">
-				<a class="nav-link" href="#">Users</a>
+				<a class="nav-link" th:href="@{/}">마이페이지</a>
 			</li>
-			<li class="nav-item">
-				<a class="nav-link" th:href="@{/settings/}">Settings</a>
+			<li sec:authorize="hasRole('ROLE_ADMIN')" class="nav-item">
+				<a class="nav-link" th:href="@{/settings/}">관리</a>
 			</li>
 		</ul>
 
