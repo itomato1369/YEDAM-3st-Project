@@ -31,9 +31,6 @@ public class IssueMockTest {
 	
 	@Autowired
 	private FilesDetailsRepository filesDetailsRepository;
-	
-	@Autowired
-	private FilesRepository filesRepository;
 
 	/*
 	@Test

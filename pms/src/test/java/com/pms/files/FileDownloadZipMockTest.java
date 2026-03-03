@@ -9,17 +9,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
-import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,17 +23,18 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpHeaders;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import com.amazonaws.services.s3.AmazonS3;
 import com.pms.config.CustomUserDetails;
 import com.pms.files.entity.FilesDetailsEntity;
-import com.pms.files.entity.FilesEntity;
 import com.pms.files.repository.FilesDetailsRepository;
-import com.pms.files.repository.FilesRepository;
-import com.pms.files.util.FileCryptoUtil;
+import com.pms.files.service.FilesUploadService;
 import com.pms.user.entity.UserEntity;
 
 @SpringBootTest
@@ -49,16 +46,16 @@ public class FileDownloadZipMockTest {
 	private MockMvc mockMvc;
 
 	@Autowired
+	private FilesUploadService filesUploadService; 
+	
+	@Autowired
 	private FilesDetailsRepository filesDetailsRepository;
-
+	
 	@Autowired
-	private FilesRepository filesRepository;
-
-	@Autowired
-	private FileCryptoUtil fileCryptoUtil;
-
-	@Value("${file.upload.path}")
-	private String uploadPath;
+	private AmazonS3 amazonS3;
+	
+	@Value("${cloud.aws.s3.bucket}")
+	private String bucket;
 	
 	private CustomUserDetails createCustomUser(String userId, boolean isAdmin) {
 		UserEntity user = UserEntity.builder()
@@ -106,36 +103,35 @@ public class FileDownloadZipMockTest {
 			}
 			assertEquals(3, cnt, "파일 개수가 맞지 않습니다.");
 		}
-		
-		
-		
 	}
 
 	// 저장
 	private Integer preEncFile() throws Exception {
-		FilesEntity filesEntity = FilesEntity.builder().userId("testUser").build();
-		filesRepository.save(filesEntity);
+		String userId = "testUser";
+		
+		MockMultipartFile file1 = new MockMultipartFile("files", "test_01.png", "image/png", "Test Data 1".getBytes());
+	    MockMultipartFile file2 = new MockMultipartFile("files", "test_02.jpg", "image/jpeg", "Test Data 2".getBytes());
+	    List<MultipartFile> files = List.of(file1, file2);
+	    
+	    Integer filesNo = filesUploadService.uploadFiles(files, userId, null);
 
-		String[] fileNames = { "test_01.png", "test_02.jpg", "test_03.jpg" };
-		for (String name : fileNames) {
-			String uuid = UUID.randomUUID().toString() + "_" + name;
-			File file = new File(uploadPath, uuid);
-
-			String content = "Test Data - " + name;
-			try (InputStream is = new ByteArrayInputStream(content.getBytes());
-				OutputStream os = new FileOutputStream(file)) {
-				fileCryptoUtil.encrypt(is, os);
-			}
-			
-			FilesDetailsEntity details = FilesDetailsEntity
-										.builder()
-										.filesEntity(filesEntity)
-										.filesName(name)
-										.filesUuid(uuid)
-										.filesSize((long) content.length())
-										.build();
-			filesDetailsRepository.save(details);
-		}
-		return filesEntity.getFilesNo();
+	    MockMultipartFile file3 = new MockMultipartFile("files", "test_03.jpg", "image/jpeg", "Test Data 3".getBytes());
+	    filesNo = filesUploadService.uploadFiles(List.of(file3), userId, filesNo);
+	    
+		return filesNo;
+	}
+	
+	// 삭제
+	@AfterEach
+	public void cleanUpS3() {
+	    // 테스트에서 생성된 파일들을 조회하여 S3에서 삭제
+	    List<FilesDetailsEntity> allDetails = filesDetailsRepository.findAll();
+	    for (FilesDetailsEntity detail : allDetails) {
+	        try {
+	            amazonS3.deleteObject(bucket, detail.getFilesUuid());
+	        } catch (Exception e) {
+	            System.err.println("S3 파일 삭제 실패: " + detail.getFilesUuid());
+	        }
+	    }
 	}
 }
