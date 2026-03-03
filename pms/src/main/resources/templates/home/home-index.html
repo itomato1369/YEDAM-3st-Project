@@ -632,6 +632,41 @@
         } catch (error) { showToast("네트워크 오류", "error"); }
     };
 
+ // 📍 개별 첨부파일 삭제 함수 추가
+    async function deleteIndividualFile(fileDetailsNo, buttonElement) {
+        // 1. 사용자에게 확인 받기
+        askConfirm("이 파일을 정말 삭제하시겠습니까?", async () => {
+            const csrf = getCsrf();
+            const headers = {};
+            if (csrf) headers[csrf.header] = csrf.token;
+
+            try {
+                // 2. 서버에 삭제 요청 (파일 상세 번호 사용)
+                const res = await fetch(`/api/notices/files/${fileDetailsNo}`, { 
+                    method: 'DELETE', 
+                    headers: headers 
+                });
+
+                if (res.ok) {
+                    // 3. UI에서 해당 리스트 항목 제거
+                    $(buttonElement).closest('li').fadeOut(300, function() {
+                        $(this).remove();
+                        // 만약 파일이 하나도 안 남았다면 "기존 첨부파일" 제목도 제거
+                        if ($('#existingFileList ul li').length === 0) {
+                            $('#existingFileList').empty();
+                        }
+                    });
+                    showToast("파일이 삭제되었습니다.");
+                } else {
+                    showToast("파일 삭제에 실패했습니다.", "error");
+                }
+            } catch (error) {
+                console.error("파일 삭제 에러:", error);
+                showToast("네트워크 오류가 발생했습니다.", "error");
+            }
+        });
+    }
+ 
     /* --- [메모 로직] --- */
     function showMemoForm() { 
         $('#memoInputForm').removeClass('hidden-item'); 
