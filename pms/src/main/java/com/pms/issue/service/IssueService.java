@@ -1,5 +1,7 @@
 package com.pms.issue.service;
 
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.log;
+
 import java.util.List;
 import java.util.Optional;
 
@@ -18,7 +20,8 @@ import com.pms.issue.web.IssueDto;
 import com.pms.issue.web.IssueSelectDto;
 
 import lombok.RequiredArgsConstructor;
-
+import lombok.extern.slf4j.Slf4j;
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class IssueService {
