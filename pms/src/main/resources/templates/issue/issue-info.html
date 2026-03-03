@@ -107,7 +107,7 @@
 							<div class="d-flex align-items-center">
 								<a th:href="@{/download/{no}(no=${file.detailsNo})}"
 									th:text="${file.filesName}"
-									class="text-decoration-none text-dark small fw-bold-hover"></a>
+									class="text-decoration-none small fw-bold-hover"></a>
 							</div>							
 						</li>
 					</ul>			
@@ -155,11 +155,12 @@
 	</div>
 	<!-- 수정이력 Card -->
 	<div class="card history-card">
-		<div class="card-header history-header">
-			<h5 class="mb-0 fw-bold">수정 이력</h5>
-		</div>
-		<div class="card-body p-0">
 				<div id="subContentArea" class="table-responsive history-scroll">
+				<div class="card-header d-flex align-items-center" style="background-color: transparent; border-bottom: 1px solid rgba(0,0,0,0.125);">
+       			 	<h5 class="card-title mb-0" style="font-weight: 600; font-size: 1rem;">
+           		 		<i class="cil-history me-2"></i>수정이력
+    				</h5>
+    			</div>
 					<table class="table table-hover align-middle mb-0 history-table">
 						<thead>
 							<tr>
@@ -182,6 +183,5 @@
 					</table>
 				</div>	
 		</div>
-	</div>
 </body>
 </html>

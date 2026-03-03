@@ -67,7 +67,7 @@
 			</div>
 		</form>
 		<!-- 보고서로 조회되는 테이블 -->
-		<div th:if="${reportList != null}" class="mt-4">
+		<div class="mt-4">
 			<table class="table table-hover text-center">
 				<thead>
 					<tr>
@@ -111,6 +111,9 @@
 							</div>
 						</td>
 					</tr>
+				<tr th:if="${#lists.isEmpty(reportList)}">
+					<td colspan="8">등록된 보고서 내역이 없습니다</td>
+				</tr>
 				</tbody>
 			</table>
 		</div>

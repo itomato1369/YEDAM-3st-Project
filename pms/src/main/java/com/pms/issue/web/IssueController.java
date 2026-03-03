@@ -53,7 +53,7 @@ public class IssueController {
 			issueSelectDto.setUserId(user.getUserId());
 		} else {
 			// projectCode가 고정으로 필터링 되니까 id 값 null줘도 
-			// 전체 소요시간이 아닌 프로젝트의 전체 소요시간으로 나올 수 있다
+			// 전체 일감이 아닌 프로젝트의 전체 일감으로 나올 수 있다
 			issueSelectDto.setUserId(null);
 		}
 

@@ -25,6 +25,9 @@
                  JOIN users u
                  ON j.user_id = u.user_id
         WHERE p.project_code = #{projectCode}
+        <if test="userId != null and userId != ''">
+          AND j.user_id = #{userId}
+        </if>
         <if test="title != null">
           AND j.title LIKE '%' || #{title} || '%'
         </if>

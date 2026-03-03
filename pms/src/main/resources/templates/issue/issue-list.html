@@ -127,6 +127,9 @@
 						</div>
 					</td>
 				</tr>
+			    <tr th:if="${#lists.isEmpty(issueList)}">
+					<td colspan="8">등록된 일감 내역이 없습니다</td>
+				</tr>
 			</tbody>
 		</table>
 	</div>

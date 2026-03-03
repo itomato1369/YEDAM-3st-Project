@@ -23,6 +23,11 @@
         color: #333333 !important;
         font-weight: 500;
     }
+     .table { 
+        border-radius: 12px !important;
+        overflow: hidden;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3); /* 더 깊은 그림자 */
+    }
     .table th {
         font-weight: 500 !important; 
         color: #333333 !important; /* 배경이 연하므로 글자는 조금 더 진하게 */
@@ -42,8 +47,6 @@
         color: var(--text-soft) !important;
     }
     
-
-
     /* 라이트 모드 전용 버튼 스타일 */
    .btn-primary {
         background-color: transparent !important; /* 배경을 투명하게 */
@@ -86,10 +89,17 @@
         border-left: 5px solid var(--point-color) !important;
         padding-left: 20px !important;
     }
-    /* 필요 시 라이트 모드 전용 테이블이나 텍스트 색상을 여기에 추가하세요 */
+    /* CSS에 추가 */
+.history-table {
+    border-top: none !important; /* 테이블 최상단 선 제거 */
 }
 
-
+.history-card {
+    overflow: hidden; /* 자식 요소(테이블)가 카드의 곡면을 벗어나지 않게 설정 */
+    border-top: 1px solid #dee2e6; /* 카드 자체의 선만 남김 */
+}
+    /* 필요 시 라이트 모드 전용 테이블이나 텍스트 색상을 여기에 추가하세요 */
+}
 
 
 /* 다크모드 속성이 활성화되었을 때만 변수와 스타일이 적용됩니다. */
@@ -124,7 +134,6 @@
         overflow: hidden;
         box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3); /* 더 깊은 그림자 */
         border: 1px solid var(--border-color) !important;
-        margin-top: 20px;
         color: var(--text-color) !important; /* 기본 글씨 연한 파랑/회색 */
     }
     
@@ -228,5 +237,18 @@
         border-left: 5px solid #048A81 !important;
         padding-left: 20px !important;
     }
-     /* 필요 시 다크 모드 전용 테이블이나 텍스트 색상을 여기에 추가하세요 */
+.history-table {
+    border-top: none !important; /* 테이블 최상단 선 제거 */
 }
+
+.history-card {
+    overflow: hidden; /* 자식 요소(테이블)가 카드의 곡면을 벗어나지 않게 설정 */
+    border: 1px solid var(--border-color) !important; 
+    background-color: var(--surface-color) !important;
+}
+.history-scroll {
+        padding-top: 0 !important;
+    }
+    /* 필요 시 다크 모드 전용 테이블이나 텍스트 색상을 여기에 추가하세요 */
+}
+
