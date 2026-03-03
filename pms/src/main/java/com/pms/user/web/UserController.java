@@ -88,8 +88,8 @@ public class UserController {
 			rttr.addFlashAttribute("msg", "정보 변경이 성공적으로 완료되었습니다.");
 			return "redirect:/user/login";
 		} catch (Exception e) {
-			rttr.addFlashAttribute("error", "정보 변경 중 오류가 발생하였습니다.");
-			return "redirect:/user/login";
+			rttr.addFlashAttribute("error", e.getMessage());
+			return "redirect:/error";
 		}
 	}
 }
