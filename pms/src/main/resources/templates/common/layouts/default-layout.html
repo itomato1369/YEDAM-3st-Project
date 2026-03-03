@@ -1,35 +1,39 @@
 <!DOCTYPE html>
-<html lang="ko" xmlns:th="https://www.thymeleaf.org/"
-				xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+<html lang="ko" xmlns:th="https://www.thymeleaf.org/" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
 <head>
 <meta charset="UTF-8">
+<meta name="_csrf" th:content="${_csrf.token}" />
+<meta name="_csrf_header" th:content="${_csrf.headerName}" />
+<th:block th:replace="~{common/configs/default-configs :: BootStrap}"></th:block>
+<link rel="stylesheet" th:href="@{/css/default-layout.css}">
 <title></title>
 <th:block th:replace="~{common/configs/default-configs :: BootStrap}"></th:block>
 <link rel="stylesheet" th:href="@{/css/default-layout.css}">
 <link rel="stylesheet" th:href="@{/css/theme.css}">
 </head>
-<body> <!--/* 주석 */-->
-<div th:replace="~{common/fragments/default-sidebar :: DefaultSidebar}"></div>
-<div class="wrapper d-flex flex-column min-vh-100">
-	<div th:replace="~{common/fragments/default-header :: DefaultHeader}"></div>
-	<div class="body flex-grow-1">
-		<!--/* <div class="container-fluid px-4"> 로 하면 화면 가로 100%사용가능 */-->
-      	<div class="container-lg px-4">
-	      	<div layout:fragment="Content"></div>
-      	</div>
-      </div>
-    </div>
-    
-      <!--/* 
+<body>
+	<!--/* 주석 */-->
+	<div th:replace="~{common/fragments/default-sidebar :: DefaultSidebar}"></div>
+	<div class="wrapper d-flex flex-column min-vh-100">
+		<div th:replace="~{common/fragments/default-header :: DefaultHeader}"></div>
+		<div class="body flex-grow-1">
+			<!--/* <div class="container-fluid px-4"> 로 하면 화면 가로 100%사용가능 */-->
+			<div class="container-lg px-4">
+				<div layout:fragment="Content"></div>
+			</div>
+		</div>
+	</div>
+
+	<!--/* 
       <footer class="footer px-4">
         <div><a href="https://coreui.io">CoreUI </a><a href="https://coreui.io/product/free-bootstrap-admin-template/">
         Bootstrap Admin Template</a> &copy; 2025 creativeLabs.</div>
         <div class="ms-auto">Powered by&nbsp;<a href="https://coreui.io/bootstrap/docs/">CoreUI UI Components</a></div>
       </footer>
       */-->
-      
-      <!-- CoreUI and necessary plugins-->
-    <script>
+
+	<!-- CoreUI and necessary plugins-->
+	<script>
       const header = document.querySelector('header.header');
       
       document.addEventListener('scroll', () => {
@@ -38,8 +42,20 @@
         }
       });
       
+      $(function() {
+          // 1. 헤더에서 토큰 정보 읽기
+          var token = $("meta[name='_csrf']").attr("content");
+          var header = $("meta[name='_csrf_header']").attr("content");
+
+          // 2. 모든 jQuery AJAX 요청에 헤더 자동 추가
+          $(document).ajaxSend(function(e, xhr, options) {
+              if (token && header) {
+                  xhr.setRequestHeader(header, token);
+              }
+          });
+      });
     </script>
-    <script src="/coreui/vendors/@coreui/utils/js/index.js"></script>
-    <script src="/coreui/vendors/@coreui/coreui/js/coreui.bundle.min.js"></script>
+	<script src="/coreui/vendors/@coreui/utils/js/index.js"></script>
+	<script src="/coreui/vendors/@coreui/coreui/js/coreui.bundle.min.js"></script>
 </body>
 </html>
