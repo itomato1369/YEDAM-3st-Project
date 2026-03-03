@@ -49,7 +49,6 @@ public class FilesUploadService {
 		FilesEntity filesEntity = null;
 		if (filesNo != null) {
 			filesEntity = filesRepository.findById(filesNo).orElse(null);
-			filesNo = null;
 		}
 		
 		// 없으면 새로 생성
