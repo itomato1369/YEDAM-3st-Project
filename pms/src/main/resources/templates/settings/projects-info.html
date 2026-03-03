@@ -221,18 +221,78 @@
 			</div>
 		</div>
 	</div>
+	
+	<div class="modal fade" id="confirmModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title"><i class="cil-warning me-2"></i>작업 확인</h5>
+                <button type="button" class="btn-close btn-close-white" data-coreui-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4 text-center">
+                <p id="confirmModalMessage" class="fs-5 mb-0"></p>
+            </div>
+            <div class="modal-footer bg-light border-0">
+                <button type="button" class="btn btn-secondary" data-coreui-dismiss="modal">취소</button>
+                <button type="button" class="btn btn-danger px-4" id="btnConfirmExecute">확인</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 9999;">
+    <div id="pmsToast" class="toast hide" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="toast-header text-white" id="toastHeader">
+            <strong class="me-auto" id="toastTitle">알림</strong>
+            <button type="button" class="btn-close btn-close-white" data-coreui-dismiss="toast"></button>
+        </div>
+        <div class="toast-body" id="toastBody"></div>
+    </div>
+</div>
 
 <script th:inline="javascript">
     $(document).ready(function() {
         const projectNo = $('#projectNo').val();
-        // 타임리프를 통해 가져온 기존 참여 그룹 목록
         let joinedGroups = /*[[${project.groups}]]*/ []; 
         let allAvailableGroups = []; 
         
         const joinedPageSize = 5;
         let joinedCurrentPage = 1;
 
-        // 📍 1. 메인(우측) 참여 그룹 리스트 렌더링 (디자인 강화 및 중복 제거)
+        // CoreUI 객체 초기화
+        const searchModal = new coreui.Modal(document.getElementById('groupAddModal'));
+        const confirmModal = new coreui.Modal(document.getElementById('confirmModal'));
+        const pmsToastElement = document.getElementById('pmsToast');
+        let pmsToast;
+
+        // --- [공통 유틸 함수] ---
+        let confirmCallback = null;
+        function askConfirm(message, callback) {
+            $('#confirmModalMessage').text(message);
+            confirmCallback = callback;
+            confirmModal.show();
+        }
+
+        function showToast(message, type = 'success') {
+            const header = $('#toastHeader');
+            const title = $('#toastTitle');
+            const body = $('#toastBody');
+
+            header.removeClass('bg-success bg-danger').addClass(type === 'success' ? 'bg-success' : 'bg-danger');
+            title.text(type === 'success' ? '성공' : '알림');
+            body.text(message);
+
+            if (!pmsToast) pmsToast = new coreui.Toast(pmsToastElement);
+            pmsToast.show();
+        }
+
+        // 컨펌 모달 실행 버튼
+        $('#btnConfirmExecute').on('click', function() {
+            if (confirmCallback) { confirmCallback(); confirmCallback = null; }
+            confirmModal.hide();
+        });
+
+        // 📍 1. 메인 참여 그룹 리스트 렌더링
         function renderJoinedList() {
             const total = joinedGroups.length;
             $('#joinedCountText').text(`총 ${total}개`);
@@ -247,7 +307,6 @@
             }
 
             pagedData.forEach(g => {
-                // 역할명 데이터 확인 및 배지 설정
                 const roleLabel = (g.roleName && g.roleName.trim() !== "") ? g.roleName : "일반";
                 const roleBadgeClass = (roleLabel !== "일반") ? 'bg-info-light text-info border-info-subtle' : 'bg-light text-muted';
 
@@ -262,7 +321,6 @@
                                 <span class="badge ${roleBadgeClass} fw-normal border" style="font-size: 0.75rem; padding: 4px 8px;">
                                     <i class="cil-shield-alt me-1"></i>${roleLabel}
                                 </span>
-                                
                                 ${g.isPm == 1 
                                     ? '<span class="badge bg-danger-light text-danger fw-normal border border-danger-subtle" style="font-size: 0.75rem; padding: 4px 8px;">PM (책임)</span>' 
                                     : '<span class="badge badge-team-light fw-normal" style="font-size: 0.75rem; padding: 4px 8px;">참여팀</span>'}
@@ -294,7 +352,7 @@
             renderJoinedList();
         };
 
-        // 📍 2. 모달 리스트 렌더링 (역할 배지 포함)
+        // 📍 2. 모달 리스트 렌더링
         function renderModalGroupList(groups) {
             const $list = $('#groupCheckboxList').empty();
             $('#totalGroupsText').text(`전체 ${groups.length}개`);
@@ -329,13 +387,12 @@
             });
         }
 
-        // 모달 체크박스 카운트 이벤트
         $(document).on('change', '.group-checkbox', function() {
             const count = $('.group-checkbox:checked').length;
             $('#modalSelectedCount').text(`${count}개 선택됨`);
         });
 
-        // 📍 3. 모달 열릴 때 API 호출
+        // 📍 3. 모달 제어 및 추가 로직
         $('#groupAddModal').on('show.coreui.modal', function () {
             const joinedIds = joinedGroups.map(g => String(g.groupNo));
             $.get('/settings/api/projects/groups', function(groups) {
@@ -343,58 +400,53 @@
                 renderModalGroupList(allAvailableGroups);
                 $('#modalSelectedCount').text('0개 선택됨');
                 $('#groupSearchInput').val(''); 
-            }).fail(function() {
-                alert("그룹 목록을 가져오지 못했습니다.");
-            });
+            }).fail(() => showToast("그룹 목록 로드 실패", "error"));
         });
 
-        // 그룹 추가 실행
         $('#btnAddGroupConfirm').on('click', function() {
             const $checked = $('.group-checkbox:checked');
             const checkedCount = $checked.length;
 
-            if (checkedCount === 0) return alert('그룹을 선택해주세요.');
-            if (!confirm(`${checkedCount}개의 그룹을 프로젝트에 추가하시겠습니까?`)) return;
+            if (checkedCount === 0) {
+                showToast("추가할 그룹을 선택해주세요.", "error");
+                return;
+            }
 
-            const isPm = $('#modalIsPmAll').is(':checked') ? 1 : 0;
-            const reqs = $checked.map(function() {
-                return $.ajax({
-                    url: `/settings/api/projects/${projectNo}/groups`,
-                    type: 'POST',
-                    contentType: 'application/json',
-                    data: JSON.stringify({ groupNo: parseInt($(this).val()), isPm: isPm })
-                });
-            }).get();
+            askConfirm(`${checkedCount}개의 그룹을 프로젝트에 추가하시겠습니까?`, function() {
+                const isPm = $('#modalIsPmAll').is(':checked') ? 1 : 0;
+                const reqs = $checked.map(function() {
+                    return $.ajax({
+                        url: `/settings/api/projects/${projectNo}/groups`,
+                        type: 'POST',
+                        contentType: 'application/json',
+                        data: JSON.stringify({ groupNo: parseInt($(this).val()), isPm: isPm })
+                    });
+                }).get();
 
-            Promise.all(reqs).then(() => {
-                alert('성공적으로 추가되었습니다.');
-                location.reload(); 
-            }).catch(() => {
-                alert('추가 중 오류가 발생했습니다.');
+                Promise.all(reqs).then(() => {
+                    showToast("그룹이 성공적으로 추가되었습니다.");
+                    setTimeout(() => location.reload(), 1000);
+                }).catch(() => showToast("추가 중 오류 발생", "error"));
             });
         });
 
-     // 📍 프로젝트 정보 수정 (날짜 유효성 체크 포함)
+        // 📍 4. 프로젝트 정보 수정
         $('#btnUpdateBasic').on('click', function() {
             const sDate = $('#startDate').val();
             const eDate = $('#endDate').val();
+            const pName = $('#projectName').val().trim();
 
-            // 1. 날짜 논리 체크 (사용자 실수 방지)
             if (sDate && eDate && sDate > eDate) {
-                alert("시작일은 종료일보다 늦을 수 없습니다.");
-                $('#startDate').focus();
-                return; // 전송 중단
+                showToast("시작일은 종료일보다 늦을 수 없습니다.", "error");
+                return;
             }
-
-            // 2. 필수값 체크 (프로젝트명은 있어야겠죠?)
-            if (!$('#projectName').val().trim()) {
-                alert("프로젝트명을 입력해주세요.");
-                $('#projectName').focus();
+            if (!pName) {
+                showToast("프로젝트명을 입력해주세요.", "error");
                 return;
             }
 
             const data = {
-                projectName: $('#projectName').val(),
+                projectName: pName,
                 status: parseInt($('#projectStatus').val()),
                 projectDesc: $('#projectDesc').val(),
                 publicYn: parseInt($('#publicYn').val()),
@@ -408,47 +460,40 @@
                 contentType: 'application/json',
                 data: JSON.stringify(data),
                 success: () => { 
-                    alert('저장되었습니다.'); 
-                    location.reload(); 
+                    showToast("변경사항이 저장되었습니다.");
+                    setTimeout(() => location.reload(), 1000);
                 },
-                error: () => {
-                    alert('저장 중 오류가 발생했습니다.');
-                }
+                error: () => showToast("저장 중 오류가 발생했습니다.", "error")
             });
         });
 
-        // 📍 실시간 날짜 제한 로직 (달력 선택 방어)
-        const $startDate = $('#startDate');
-        const $endDate = $('#endDate');
-
-        $startDate.on('change', function() {
-            if ($(this).val()) $endDate.attr('min', $(this).val());
-        });
-
-        $endDate.on('change', function() {
-            if ($(this).val()) $startDate.attr('max', $(this).val());
-        });
-
-        // 초기 로드 시 제한 설정
-        if ($startDate.val()) $endDate.attr('min', $startDate.val());
-        if ($endDate.val()) $startDate.attr('max', $endDate.val());
-        // 제외 기능
+        // 📍 5. 제외 기능
         $(document).on('click', '.btn-remove-group', function() {
             const groupNo = $(this).data('group-no');
-            if(confirm('이 그룹을 제외하시겠습니까?')) {
+            askConfirm('이 그룹을 프로젝트 참여 명단에서 제외하시겠습니까?', function() {
                 $.ajax({
                     url: `/settings/api/projects/${projectNo}/groups/${groupNo}`,
                     type: 'DELETE',
-                    success: () => location.reload()
+                    success: () => {
+                        showToast("제외되었습니다.");
+                        setTimeout(() => location.reload(), 800);
+                    }
                 });
-            }
+            });
         });
 
-        // 검색 기능
+        // 📍 6. 기타 보조 기능 (검색/날짜제한)
         $('#groupSearchInput').on('input', function() {
             const val = $(this).val().toLowerCase();
             renderModalGroupList(allAvailableGroups.filter(g => g.groupName.toLowerCase().includes(val)));
         });
+
+        // 날짜 제한 동기화
+        const $startDate = $('#startDate'), $endDate = $('#endDate');
+        $startDate.on('change', function() { if ($(this).val()) $endDate.attr('min', $(this).val()); });
+        $endDate.on('change', function() { if ($(this).val()) $startDate.attr('max', $(this).val()); });
+        if ($startDate.val()) $endDate.attr('min', $startDate.val());
+        if ($endDate.val()) $startDate.attr('max', $endDate.val());
 
         renderJoinedList(); // 초기 실행
     });
