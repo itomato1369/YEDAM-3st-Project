@@ -23,6 +23,9 @@
 	display: none !important;
 	content: "" !important;
 }
+.gantt_task_link {
+    pointer-events: none !important;
+}
 
 .gantt_grid_head_add {
 	cursor: default !important; /* 손가락 모양(pointer)을 기본 화살표로 변경 */
@@ -138,7 +141,10 @@
         gantt.config.grid_resize = true;
         gantt.config.keep_grid_width = false;
         gantt.config.drag_progress = false;
-
+        
+        gantt.config.drag_move = false;   // 드래그해서 좌우로 이동(날짜 변경)하는 것 막기
+        gantt.config.drag_resize = false; // 기간(크기)을 확장/축소하는 것 막기
+        
         gantt.config.work_time = true;
         gantt.config.correct_work_time = true;
         gantt.config.skip_off_time = true;
@@ -185,7 +191,9 @@
         gantt.attachEvent("onTaskDblClick", function(id) {
             return !String(id).startsWith("p");
         });
-
+        
+        gantt.attachEvent("onLinkDblClick", function(id, e){ return false; }); // 링크삭제이벤트 차단
+        
         // 기본 lightbox 대신 커스텀 부트스트랩 모달
         gantt.attachEvent("onBeforeLightbox", function(id) {
             currentTaskInfo = gantt.getTask(id);
@@ -464,13 +472,20 @@
                 
                 const curFilesNo = currentTaskInfo.filesNo;
                 if (curFilesNo && curFilesNo !== "null" && curFilesNo !== "undefined") {
-                    formData.append("filesNo", curFilesNo);
+                	formData.set("filesNo", curFilesNo);
+                }else {
+                    formData.delete("filesNo"); 
                 }
                 
                 formData.append("_method", "PUT"); // 스프링에게 이 POST 요청을 PUT으로 취급하라고 지시!
             }
 
-            fetch(targetUrl, { method: reqMethod, body: formData })
+            fetch(targetUrl, { 
+            	method: reqMethod
+            	, headers: {
+                    [window.csrfHeader]: window.csrfToken
+                }
+            	, body: formData })
             .then(response => {
                 submitBtn.disabled = false;
                 if (!response.ok) throw new Error("서버 응답 오류: " + response.status);

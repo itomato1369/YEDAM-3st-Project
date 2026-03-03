@@ -27,6 +27,9 @@ public class HistoryDTO {
 	private String userId;
 	private String username;
 	private String title;
+	private Integer publicRole;
+	private String  workerId;
+	private String  managerId;
 	private String jobType;
 	private Integer jobTypeNo;
 	private String jobStatus;

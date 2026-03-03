@@ -509,10 +509,6 @@ public class ProjectServiceImpl implements ProjectService {
 
 	// 이력 조회
 	@Override
-	public List<HistoryDTO> findHistoryByCode(String projectCode) {
-		return projectMapper.selectHistoryByCode(projectCode);
-	}
-	@Override
 	public List<HistoryDTO> findHistoryByCodeAndDate(Map<String, Object> params) {
 		return projectMapper.selectHistoryByCodeAndDate(params);
 	}

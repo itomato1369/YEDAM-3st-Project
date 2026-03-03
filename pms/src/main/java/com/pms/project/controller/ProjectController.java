@@ -238,7 +238,15 @@ public class ProjectController {
             @PathVariable String projectCode,
             @RequestParam(defaultValue = "1") int page, // 현재 페이지
             @RequestParam(defaultValue = "7") int days, // 페이징 단위 (7일 기본)
+            @AuthenticationPrincipal CustomUserDetails customUser,
             Model model) {
+    	// 권한 정보 추출
+    	String userId = customUser.getUserEntity().getUserId();
+        boolean isAdmin = customUser.getUserEntity().isAdmin();
+        
+        // 현재 프로젝트의 PM인지 확인
+        boolean isPm = projectService.findIsPM(userId).stream()
+                .anyMatch(pmDto -> projectCode.equals(pmDto.getProjectCode()));
         
         // 1. 날짜 범위 계산
         LocalDate toDate = LocalDate.now().minusDays((page - 1) * days);
@@ -254,9 +262,22 @@ public class ProjectController {
         params.put("endDate", endDate);
 
         // 3. 서비스 호출
-        List<HistoryDTO> historyList = projectService.findHistoryByCodeAndDate(params);
+        List<HistoryDTO> rawHistoryList = projectService.findHistoryByCodeAndDate(params);
         int olderHistoryCount = projectService.findCountOlderHistory(params);
 
+        List<HistoryDTO> historyList;
+        if (!isAdmin && !isPm) {
+            historyList = rawHistoryList.stream()
+                .filter(dto -> 
+                    (dto.getPublicRole() != null && dto.getPublicRole() == 1) || // 전체공개 통과
+                    userId.equals(dto.getWorkerId()) || // 내가 작업자인 경우 통과
+                    userId.equals(dto.getManagerId())   // 내가 담당자인 경우 통과
+                )
+                .collect(Collectors.toList());
+        } else {
+            historyList = rawHistoryList; // 관리자나 PM은 필터링 없이 원본 사용
+        }
+        
         // 4. 날짜별 뼈대 생성 및 그룹핑 로직
         String todayStr = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy/MM/dd"));
         Map<String, List<HistoryDTO>> groupedHistory = new LinkedHashMap<>();

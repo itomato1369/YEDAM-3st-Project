@@ -44,7 +44,6 @@ public interface ProjectService {
     Set<HolidayDTO> findHolidays();
     
     // 이력조회
-    List<HistoryDTO> findHistoryByCode(String projectCode);
     List<HistoryDTO> findHistoryByCodeAndDate(Map<String, Object> params);
     int findCountOlderHistory(Map<String, Object> params);
 }
