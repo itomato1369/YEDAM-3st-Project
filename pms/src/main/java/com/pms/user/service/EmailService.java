@@ -2,6 +2,7 @@ package com.pms.user.service;
 
 import java.time.Duration;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -23,10 +24,13 @@ public class EmailService {
 	private final JavaMailSender mailSender;
 	private final StringRedisTemplate redisTemplate;
 	private final TemplateEngine templateEngine;
+	
+	@Value("${mail.update.path}")
+	private String mailPath; 
 
 	@Async
 	public void sendPwResetMail(String userMail, String tokenValue) {
-		String link = "http://localhost:8080/user/pwResetLink?token=" + tokenValue;
+		String link = mailPath + "/user/pwResetLink?token=" + tokenValue;
 		sendCommonMail(userMail,
 				"[PMS] 비밀번호 재설정 안내", 
 	            "비밀번호 재설정", 
@@ -40,7 +44,7 @@ public class EmailService {
 		String redisKey = "PROFILE_UPDATE:" + token;
 		String redisValue = userId + ":" + newUsername + ":" + newEmail;
 		redisTemplate.opsForValue().set(redisKey, redisValue, Duration.ofMinutes(5));
-		String link = "http://localhost:8080/user/updateEmail?token=" + token;
+		String link = mailPath + "/user/updateEmail?token=" + token;
 		
 		sendCommonMail(newEmail,
 				"[PMS] 회원정보 변경 확인 안내", 

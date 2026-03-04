@@ -355,7 +355,7 @@
 				<h2 class="accordion-header">
 					<button class="accordion-button collapsed" type="button"
 						data-coreui-toggle="collapse" data-coreui-target="#collapseRoles">
-						프로젝트 역할 관리</button>
+						그룹 권한 관리</button>
 				</h2>
 				<div id="collapseRoles" class="accordion-collapse collapse"
 					data-coreui-parent="#settingsAccordion">
@@ -778,7 +778,7 @@
 		    $(document).on('click', '.group-name-cell', function () { location.href = `/settings/groups-info?group_no=${$(this).data('id')}`; });
 		    $(document).on('click', '.project-name-cell', function () { location.href = `/settings/projects-info?projectNo=${$(this).data('id')}`; });
 		    $('#btnUserAdd').on('click', () => { location.href = '/user/new'; });
-		    $('#btnProjectAdd').on('click', () => { location.href = '/project/new'; });
+		    $('#btnProjectAdd').on('click', () => { location.href = '/project/create'; });
 
 		    init();
 		});

@@ -727,14 +727,26 @@ let currentDashboardIssues = [];
 /* --- [일감 현황 로직 수정] --- */
 async function loadDashboardIssues() {
     const projectCode = document.getElementById('dashProjectSelect')?.value || 'all';
-    const isOnlyMe = document.getElementById('dashShowOnlyMe').checked ? 'Y' : 'N';
     const listContainer = document.getElementById('dash-issue-list');
+    
+    // 📍 권한 체크 로직 추가
+    // isAdmin이 false(일반유저)라면 스위치 상태와 상관없이 무조건 'Y'
+    const isOnlyMe = isAdmin ? (document.getElementById('dashShowOnlyMe').checked ? 'Y' : 'N') : 'Y';
+
+    // 일반 유저인 경우 UI의 '내 것만' 스위치를 강제로 켜짐 상태로 고정하고 조작 방지 (선택 사항)
+    if (!isAdmin) {
+        const switchEl = document.getElementById('dashShowOnlyMe');
+        if (switchEl) {
+            switchEl.checked = true;
+            switchEl.disabled = true; // 일반 유저는 끌 수 없도록 비활성화
+        }
+    }
 
     try {
         const response = await fetch(`/api/dashboard/${projectCode}/issues?showOnlyMe=${isOnlyMe}`);
         const issues = await response.json();
         
-        // 1. 우선순위 가중치 설정 및 정렬
+        // 1. 우선순위 가중치 설정 및 정렬 (긴급-높음-보통-낮음)
         const priorityWeight = { '긴급': 1, '높음': 2, '보통': 3, '낮음': 4 };
         
         currentDashboardIssues = issues.sort((a, b) => {
@@ -745,10 +757,10 @@ async function loadDashboardIssues() {
         renderPriorityBadges(); // 상단 카운트 배지 그리기
 
     } catch (error) { 
+        console.error("일감 로딩 중 에러:", error);
         listContainer.innerHTML = '<div class="text-center text-danger py-4">데이터 로딩 에러</div>'; 
     }
 }
-
 // 📍 필터링 및 리스트 렌더링 함수
 function renderIssueList() {
     const listContainer = document.getElementById('dash-issue-list');

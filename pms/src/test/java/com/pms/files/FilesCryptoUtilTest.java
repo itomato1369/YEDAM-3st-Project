@@ -1,6 +1,7 @@
 package com.pms.files;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
@@ -48,7 +49,7 @@ public class FilesCryptoUtilTest {
 
 		// 검증
 		byte[] deHash = MessageDigest.getInstance("SHA-256").digest(deOs.toByteArray());
-//		assertArrayEquals("파일이 일치하지 않습니다.", orgHash, deHash);
+		assertArrayEquals(orgHash, deHash);
 		
 		System.out.println("[Crypto] FILE CRYPTO TEST END");
 	}
