@@ -181,6 +181,8 @@
 				<div class="col-md-6">
 					<label for="formFile" class="form-label">첨부파일</label> 
 					<input class="form-control" type="file" id="files" name="files" multiple />
+					<!-- hidden으로 첨부파일 번호를 보낸다 -->
+					<input type="hidden" name="filesNo" th:value="${issue.filesNo}">
 					<!-- 여러개 선택시 첨부파일 이름이 표시 -->
 					<div class="border rounded p-2">
 						<span>현재 등록된 첨부파일</span>
@@ -241,6 +243,18 @@
 			</div>
 		</form>
 	</div>
+	   			<!-- 파일 삭제 toast 알림창 -->
+			<div class="toast-container position-fixed bottom-0 end-0 p-3">
+  				<div id="fileToast" class="toast hide" role="alert" aria-live="assertive" aria-atomic="true">
+    				<div class="toast-header bg-danger text-white">
+      					<strong class="me-auto">알림</strong>
+      					<button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
+   					 </div>
+    				<div class="toast-body" id="toastMessage">
+      					파일이 삭제되었습니다.
+    				</div>
+  				</div>
+			</div>
 	<!-- 모달 fragment 호출 ~{템플릿 재사용 fragment 호출 조각 표현식} -->
 	<th:block th:replace="~{common/fragments/issue/user-select-modal :: UserSelectModal}"></th:block>
 	<th:block th:replace="~{common/fragments/issue/issue-select-modal :: IssueSelectModal}"></th:block>

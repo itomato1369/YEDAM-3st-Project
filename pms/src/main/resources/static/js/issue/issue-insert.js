@@ -44,64 +44,67 @@ document.addEventListener("DOMContentLoaded", function () {
               */
   const fileInput = document.getElementById("files");
   const fileList = document.getElementById("fileList");
-  
-  // DataTransfer 
+
+  // DataTransfer
   // 파일들을 누적으로 담아둘 객체
   const globalDataTransfer = new DataTransfer();
 
   fileInput.addEventListener("change", function () {
-      const newFiles = fileInput.files; // 새로 선택된 파일들
+    const newFiles = fileInput.files; // 새로 선택된 파일들
 
-      for (let i = 0; i < newFiles.length; i++) {
-        const file = newFiles[i];
-        const fileName = file.name;
+    for (let i = 0; i < newFiles.length; i++) {
+      const file = newFiles[i];
+      const fileName = file.name;
 
-        // 1. 중복 체크
-        const exists = Array.from(globalDataTransfer.files).some(
-          (f) => f.name === fileName && f.size === file.size
-        );
+      // 1. 중복 체크
+      const exists = Array.from(globalDataTransfer.files).some(
+        (f) => f.name === fileName && f.size === file.size,
+      );
 
-        if (!exists) {
-          // 2. DataTransfer 에 파일 추가
-          globalDataTransfer.items.add(file);
+      if (!exists) {
+        // 2. DataTransfer 에 파일 추가
+        globalDataTransfer.items.add(file);
 
-          // 3.  리스트 생성
-          const li = document.createElement("li");
-          li.className = "list-group-item shadow-sm d-flex justify-content-between align-items-center";
-          li.dataset.name = fileName;
-          li.textContent = fileName;
+        // 3.  리스트 생성
+        const li = document.createElement("li");
+        li.className =
+          "list-group-item shadow-sm d-flex justify-content-between align-items-center";
+        li.dataset.name = fileName;
+        li.textContent = fileName;
 
-          const xButton = document.createElement("button");
-          xButton.type = "button";
-          xButton.className = "btn btn-sm btn-danger";
-          xButton.textContent = "X";
+        const xButton = document.createElement("button");
+        xButton.type = "button";
+        xButton.className = "btn btn-sm btn-danger";
+        xButton.textContent = "X";
 
-          // 삭제 버튼 클릭 시 로직
-          xButton.addEventListener("click", function () {
-            li.remove(); // 화면에서 제거
+        // 삭제 버튼 클릭 시 로직
+        xButton.addEventListener("click", function () {
+          li.remove(); // 화면에서 제거
 
-            // DataTransfer에서도 해당 파일 제거
-            const tempTransfer = new DataTransfer();
-            Array.from(globalDataTransfer.files)
-              .filter((f) => f.name !== fileName)
-              .forEach((f) => tempTransfer.items.add(f));
-            
-            // 전역 DataTransfer 갱신
-            // globalDataTransfer는 직접 삭제가 안 되므로 다시 채워넣는 방식 사용
-            while(globalDataTransfer.items.length > 0) globalDataTransfer.items.remove(0);
-            Array.from(tempTransfer.files).forEach(f => globalDataTransfer.items.add(f));
+          // DataTransfer에서도 해당 파일 제거
+          const tempTransfer = new DataTransfer();
+          Array.from(globalDataTransfer.files)
+            .filter((f) => f.name !== fileName)
+            .forEach((f) => tempTransfer.items.add(f));
 
-            // 실제 input 요소 동기화
-            fileInput.files = globalDataTransfer.files;
-          });
+          // 전역 DataTransfer 갱신
+          // globalDataTransfer는 직접 삭제가 안 되므로 다시 채워넣는 방식 사용
+          while (globalDataTransfer.items.length > 0)
+            globalDataTransfer.items.remove(0);
+          Array.from(tempTransfer.files).forEach((f) =>
+            globalDataTransfer.items.add(f),
+          );
 
-          li.appendChild(xButton);
-          fileList.appendChild(li);
-        }
+          // 실제 input 요소 동기화
+          fileInput.files = globalDataTransfer.files;
+        });
+
+        li.appendChild(xButton);
+        fileList.appendChild(li);
       }
+    }
 
-      // 5. ⭐ 중요: 새로 선택이 끝난 후, 인풋의 파일을 전체 누적된 파일로 교체합니다.
-      fileInput.files = globalDataTransfer.files;
-      
-    });
+    // 5.  중요: 새로 선택이 끝난 후, 인풋의 파일을 전체 누적된 파일로 교체합니다.
+    fileInput.files = globalDataTransfer.files;
+  });
 });
