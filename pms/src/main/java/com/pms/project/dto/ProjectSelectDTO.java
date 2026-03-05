@@ -46,4 +46,6 @@ public class ProjectSelectDTO {
     // [4] 집계 데이터 (한 번의 서브쿼리로 싹 다 가져옴) 
     private ProjectTotalDTO projectTotalDTO;
     
+    // 개요페이지 접근가능데이터분류용도
+    private boolean hasAccess;
 }

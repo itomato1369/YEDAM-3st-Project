@@ -37,7 +37,7 @@ public interface ProjectService {
     IssueTrackerDTO findJobTrackerPivot(String projectCode);
     Map<String, List<String>> findGroupMemberByCode(String projectCode);
     List<NoticeDTO> findNoties();
-    List<ProjectSelectDTO> findFirstChildsByCode(String projectCode);
+    List<ProjectSelectDTO> findFirstChildsByCode(String projectCode, boolean isAdmin, String userId);
     
     // 간트차트
     Map<String, Object> findGanttDataByCode(String projectCode, String userId, boolean isAdmin);

@@ -140,7 +140,7 @@ public class ProjectController {
     	model.addAttribute("info", projectService.findInfoByCode(projectCode));
     	model.addAttribute("trackerData", projectService.findJobTrackerPivot(projectCode));
     	model.addAttribute("groupMembers", projectService.findGroupMemberByCode(projectCode));
-    	model.addAttribute("childProjects", projectService.findFirstChildsByCode(projectCode));
+    	model.addAttribute("childProjects", projectService.findFirstChildsByCode(projectCode, customUser.getUserEntity().isAdmin(),customUser.getUserEntity().getUserId() ));
 		model.addAttribute("news", projectService.findNoties());
     	
 		// 권한을 바탕으로 프로젝트 수정버튼이 보임

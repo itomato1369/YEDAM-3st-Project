@@ -63,7 +63,11 @@ public interface ProjectMapper {
     // 최신 공지사항 목록 조회
     List<NoticeDTO> selectNotices();
     // 하위 프로젝트 목록 조회(이름, 식별자, 상태)
-    List<ProjectSelectDTO> selectFirstChildsByCode(@Param("projectCode") String projectCode, Integer active, Integer locked );
+    List<ProjectSelectDTO> selectChildsByCode(@Param("projectCode") String projectCode
+    		                                 , @Param("isAdmin") boolean isAdmin
+    		                                 , @Param("userId") String userId
+    		                                 , Integer active
+    		                                 , Integer locked );
     
     
     // GanttChart

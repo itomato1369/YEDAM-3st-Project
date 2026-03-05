@@ -376,9 +376,12 @@ public class ProjectServiceImpl implements ProjectService {
 	}
 
 	@Override
-	public List<ProjectSelectDTO> findFirstChildsByCode(String projectCode) {
-		return projectMapper.selectFirstChildsByCode(projectCode, ProjectStatus.ACTIVE.getCode(),
-				ProjectStatus.LOCKED.getCode());
+	public List<ProjectSelectDTO> findFirstChildsByCode(String projectCode, boolean isAdmin, String userId) {
+		return projectMapper.selectChildsByCode(projectCode, isAdmin, userId, 
+	            ProjectStatus.ACTIVE.getCode(), ProjectStatus.LOCKED.getCode())
+	            .stream()
+	            .filter(ProjectSelectDTO::isHasAccess)
+	            .toList();
 	}
 
 	@Override

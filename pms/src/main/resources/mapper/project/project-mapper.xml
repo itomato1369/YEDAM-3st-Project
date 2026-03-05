@@ -274,17 +274,47 @@
 		WHERE ROWNUM &lt;= 2
 	</select>
 	<!--/* 하위 프로젝트 목록 조회 */-->
-	<select id="selectFirstChildsByCode" resultType="ProjectSelectDTO">
-		SELECT 
-		  child.project_name
-		  , child.project_code
-		  , child.status
-		  , FN_GET_CODE_NAME(child.status) AS status_name
-		FROM project parent
-		JOIN project child
-		ON parent.project_no = child.parent_project_no
-		WHERE parent.project_code = #{projectCode}
-		AND child.status Between #{active} AND #{locked}
+	<select id="selectChildsByCode" resultType="ProjectSelectDTO">
+	    SELECT 
+	        p.project_name,
+	        p.project_code,
+	        p.status,
+	        c.common_name AS status_name,
+	        
+	        <choose>
+	            <when test="isAdmin">
+	                1 AS has_access
+	            </when>
+	            <otherwise>
+	                CASE 
+	                    WHEN p.public_yn = 1 THEN 1
+	                    WHEN EXISTS (
+	                        SELECT 1 FROM vw_member v 
+	                        WHERE v.project_no = p.project_no AND v.user_id = #{userId}
+	                    ) THEN 1 
+	                    ELSE 0 
+	                END AS has_access
+	            </otherwise>
+	        </choose>
+	
+	    FROM (
+	        SELECT 
+	            project_no,
+	            project_name,
+	            project_code,
+	            status,
+	            public_yn
+	        FROM project
+	        START WITH project_code = #{projectCode}
+	        CONNECT BY NOCYCLE PRIOR project_no = parent_project_no
+	    ) p
+	    JOIN common c ON p.status = c.common_no
+	    
+	    WHERE p.project_code != #{projectCode}
+	    <if test="!isAdmin">
+	        AND p.status BETWEEN #{active} AND #{locked}
+	    </if>
+	    
 	</select>
 	
 	<!--/* 간트차트 조회 */-->
