@@ -13,6 +13,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import com.pms.config.CustomUserDetails;
+import com.pms.issue.service.IssueService;
+import com.pms.issue.web.IssueDto;
 import com.pms.project.service.ProjectService;
 import com.pms.user.entity.UserEntity;
 import com.pms.work.dto.WorkInsertDto;
@@ -31,6 +33,7 @@ import lombok.RequiredArgsConstructor;
 public class WorkController {
 	private final WorkService workService;
 	private final ProjectService projectService;
+	private final IssueService issueService;
 
 	// 소요시간 전체 조회 + 검색기능
 	@GetMapping("/list/read")
@@ -38,7 +41,8 @@ public class WorkController {
 									@PathVariable String projectCode,
 									@RequestParam(value = "showOnlyMe", required = false) String showOnlyMe,
 									Model model, 
-									WorkSelectDto workSelectDto) {
+									WorkSelectDto workSelectDto,
+									IssueDto issueDto) {
 		// showOnlyMe 가 필수는 아니라 required = false임 없어도 controller는 작동해야 하니까
 		
 		// 현재 로그인 정보가 담긴 커스텀 객체
@@ -60,11 +64,17 @@ public class WorkController {
 
 		// 전체 조회 + 검색조건 조회
 		List<WorkSelectDto> workEntriesList = workService.findAllWorkEntries(workSelectDto);
+		// 프로젝트 참여중인 멤버 목록
+		List<IssueDto> managerList = issueService.getManagerList(issueDto);
+		// 프로젝트에 등록된 일감 목록
+		List<IssueDto> parentIssueList = issueService.getParentIssueList(issueDto);
 		
 		// 검색한 결과를 담아 보냄
 		model.addAttribute("showOnlyMe", showOnlyMe);
 		model.addAttribute("projectCode", projectCode);
 		model.addAttribute("userId", user.getUserId());
+		model.addAttribute("parentIssueList", parentIssueList);
+		model.addAttribute("managerList", managerList);
 		model.addAttribute("workType", workService.findWorkType(null));
 		model.addAttribute("project", projectService.findInfoByCode(projectCode));
 		model.addAttribute("workEntriesList", workEntriesList);
@@ -165,12 +175,18 @@ public class WorkController {
 	@GetMapping("/report/list/read")
 	public String workReport(@AuthenticationPrincipal CustomUserDetails customUser, 
 										  @PathVariable String projectCode,
-										  WorkReportDto workReportDto, 
+										  WorkReportDto workReportDto,
+										  IssueDto issueDto,
 										  Model model) {
 		
 		UserEntity user = customUser.getUserEntity();
 		workReportDto.setProjectCode(projectCode);
 		workReportDto.setUserId(user.getUserId());
+		
+		// 프로젝트 참여중인 멤버 목록
+		List<IssueDto> managerList = issueService.getManagerList(issueDto);
+		// 프로젝트에 등록된 일감 목록
+		List<IssueDto> parentIssueList = issueService.getParentIssueList(issueDto);
 
 		// type은 job, project, workType, users, week, month
 		String type = workReportDto.getType();
@@ -192,6 +208,10 @@ public class WorkController {
 		
 		model.addAttribute("userId", user.getUserId());
 		model.addAttribute("projectCode", projectCode);
+		// 전체 작업분류 가져오기
+		model.addAttribute("workTypeList", workService.findWorkType(null));
+		model.addAttribute("parentIssueList", parentIssueList);
+		model.addAttribute("managerList", managerList);	
 		model.addAttribute("project", projectService.findInfoByCode(projectCode));;
 		return "work/work-report";
 

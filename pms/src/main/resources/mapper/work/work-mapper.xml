@@ -33,13 +33,13 @@
 		 AND  j.user_id = #{userId}
   		  </if>
   		  <if test="username != null and username != ''">
-  		  AND u.username LIKE '%' || #{username} || '%'
+  		  AND u.username = #{username}
   		  </if>
 		  <if test="jobNo != null and jobNo != 0">
 		 AND we.job_no = #{jobNo}
 		  </if>
 		  <if test="title !=null and title !=''">
-		  AND j.title LIKE '%' || #{title} || '%'
+		  AND j.title = #{title}
 		  </if>
 		  <if test="workers !=null and workers !=''">
 		   AND we.workers = #{workers}
@@ -227,7 +227,7 @@
             <where>
                     p.project_code = #{projectCode}
                 <if test="workType != null and workType != ''">
-                    AND wd.work_type LIKE '%' || #{workType} || '%'
+                    AND wd.work_type = #{workType} 
                 </if>
                 <if test="workDetailsNo != null and workDetailsNo != ''">
                     AND we.work_details_no = #{workDetailsNo} 

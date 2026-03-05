@@ -5,10 +5,21 @@ document.addEventListener("DOMContentLoaded", function () {
 				datepicker() method를 실행하겠다
 				한국어 캘린더 사용을 위해 가져옴
 			 */
+  const projectStart = document.getElementById("projectStartDate").value;
+  const projectEnd = document.getElementById("projectEndDate").value;
+
   $(".datepicker").datepicker({
     format: "yyyy-mm-dd",
     language: "ko",
     autoclose: true,
+    startDate: projectStart,
+    endDate: projectEnd,
+  });
+  // 근무한 날짜 선택시
+  $("#workDate").on("changeDate", function (event) {
+    // 근무일 선택 : 프로젝트 기간
+    $("#workDate").datepicker("setStartDate", event.date);
+    $("#workDate").datepicker("setEndDate", event.date);
   });
 
   document

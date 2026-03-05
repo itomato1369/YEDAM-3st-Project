@@ -1,19 +1,20 @@
 document.addEventListener("DOMContentLoaded", function () {
+  // 날짜 관련 변수
+  const projectStart = document.getElementById("projectStartDate").value;
+  const projectEnd = document.getElementById("projectEndDate").value;
+
   // jQuery 달력
   $(".datepicker").datepicker({
     format: "yyyy-mm-dd",
     language: "ko",
     autoclose: true,
+    startDate: projectStart,
+    endDate: projectEnd,
   });
   // 시작 일자를 선택하면 마감일자는 시작일자 보다 그 앞을 선택할 수 없다
   $("#startDate").on("changeDate", function (event) {
     // 시작일 선택 -> 마감일의 선택 가능한 날짜 최소화
     $("#endDate").datepicker("setStartDate", event.date);
-    // 마감일을 먼저 선택 -> 시작일보다 빠르다면 마감일과 시작일이 동일하게 변경
-    const endDateValue = $("#endDate").datepicker("getDate");
-    if (endDateValue && endDateValue < event.date) {
-      $("#endDate").datepicker("update", event.date);
-    }
   });
   // 마감일이 변경될 때 시작일 범위 제한
   $("#endDate").on("changeDate", function (event) {
@@ -23,8 +24,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
   const updateForm = document.getElementById("issueUpdate");
   const confirmUpdateButton = document.getElementById("updateSubmit");
+  // 첨부파일
   const fileInput = document.getElementById("files");
   const fileList = document.getElementById("fileList");
+  // 에러 메세지
   const commentInput = updateForm.querySelector("input[name='changeComment']");
   const errorMessage = document.getElementById("commentError");
   // Bootstrap 5 모달 인스턴스
@@ -134,6 +137,7 @@ document.addEventListener("DOMContentLoaded", function () {
       /* input type="file"은 MultipartFile 실제 파일 데이터
          input type="hidden"String/Integer 단순이 문자열 혹은 숫자를 보낼 수 있음
          서버에 fileNo 뭐를 지웠다고 알려줌
+         html의 filesNo
       */
       const hiddenInput = document.createElement("input");
       hiddenInput.type = "hidden";

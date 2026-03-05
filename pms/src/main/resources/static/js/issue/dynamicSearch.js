@@ -2,21 +2,18 @@
  * DOMContentLoaded html파일을 다 만들고 나면 JavaScript 코드를 실행한다
  */
 document.addEventListener("DOMContentLoaded", function () {
-	// datepicker jQuery 달력
-	$(".datepicker").datepicker({
-	  format: "yyyy-mm-dd",
-	  language: "ko",
-	  autoclose: true,
-	});
+  // datepicker jQuery 달력
+  $(".datepicker").datepicker({
+    format: "yyyy-mm-dd",
+    language: "ko",
+    autoclose: true,
+  });
   /* 검색조건 추가 메뉴에서 항목을 클릭하면 
    class명이 add-condition인 걸다 가져와서 각각에
   변수명 menuItem으로  클릭 이벤트를 준다
   변수명 targeId는 data-target 아이디
   targetDiv는 그 아이디의 html요소를 가져옴
   if 만약 그 요소가 있으면 d-none을 지운다
-  */
-
-  /**
    *  일감조회 페이지 local storage session
    *  job, project, users, week, month
    *  선택하면 화면에 표시되어야 하는건
@@ -131,14 +128,14 @@ document.addEventListener("DOMContentLoaded", function () {
 html에서 쓴 onchange 가 찾는다 
 html은 DOMContentLoaded안의 내용을 모르기 때문
 this는 전역 Golbal scope에서 찾기 때문
-*/ 
+*/
 function toggleMyIssue(checkbox) {
-	// 현재 URL 경로 가져옴
-	const url = window.location.pathname;
-	// 체크가 되어잇으면 ? showOnlyMe=Y 붙이고 아니면 기본 url로 이동
-	if (checkbox.checked) {
-		location.href = url + "?showOnlyMe=Y";
-	} else {
-		location.href = url;
-	}
+  // 현재 URL 경로 가져옴
+  const url = window.location.pathname;
+  // 체크가 되어잇으면 ? showOnlyMe=Y 붙이고 아니면 기본 url로 이동
+  if (checkbox.checked) {
+    location.href = url + "?showOnlyMe=Y";
+  } else {
+    location.href = url;
+  }
 }

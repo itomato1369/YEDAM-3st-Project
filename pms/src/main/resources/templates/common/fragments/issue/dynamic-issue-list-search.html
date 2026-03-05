@@ -1,15 +1,20 @@
 <!-- 조건을 추가하여 검색 -->
 <!-- 일감제목 -->
-<div th:fragment="JobTitleField" class="col-md-3 condition-field d-none"
-	id="field-jobTitle">
+<div th:fragment="JobTitleField" 
+		class="col-md-3 condition-field d-none"
+		id="field-jobTitle">
 	<div class="card card-body shadow-sm">
 		<div class="d-flex justify-content-between align-items-center mb-2">
 			<label class="fw-bold small">일감 제목</label>
-			<button type="button" class="btn-close btn-remove"
-				data-target="field-jobTitle"></button>
+			<button type="button" 
+					 	 class="btn-close btn-remove"
+						 data-target="field-jobTitle"></button>
 		</div>
-		<input type="text" name="title" class="form-control form-control-sm"
-			placeholder="일감 제목을 입력하세요">
+		<select name="title" class="form-select">
+		<option value="">선택</option>
+		<option th:each="issueList : ${parentIssueList}"
+					th:text="${issueList.title}"></option>
+		</select>			
 	</div>
 </div>
 <!-- 일감상태 value option 사용해서 다시-->
@@ -72,12 +77,15 @@
 	id="field-username">
 	<div class="card card-body shadow-sm">
 		<div class="d-flex justify-content-between align-items-center mb-2">
-			<label class="fw-bold small">담당자</label>
+			<label class="fw-bold small">담당자를 선택하세요</label>
 			<button type="button" class="btn-close btn-remove"
 				data-target="field-username"></button>
 		</div>
-		<input type="text" name="username" class="form-control form-control-sm"
-			placeholder="담당자를 입력하세요">
+		<select name="username" class="form-select">
+		<option value="">선택</option>
+		<option th:each="user : ${managerList}"
+					th:text="${user.username}"></option>
+		</select>
 	</div>
 </div>
 <!-- 시작 날짜 -->

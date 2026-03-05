@@ -149,6 +149,9 @@
 							  th:value="${#dates.format(issue.endDate, 'yyyy-MM-dd')}" 
 							  readonly />
 				</div>
+				<!-- 프로젝트 기간을 벗어날 수 없도록  -->
+				<input type="hidden" id="projectStartDate" th:value="${#dates.format(project.startDate, 'yyyy-MM-dd')}">
+				<input type="hidden" id="projectEndDate" th:value="${#dates.format(project.endDate, 'yyyy-MM-dd')}">
 			</div>
 
 			<div class="row mb-3">

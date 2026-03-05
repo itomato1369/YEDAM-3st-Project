@@ -1,14 +1,25 @@
 document.addEventListener("DOMContentLoaded", function () {
+  const projectStart = document.getElementById("projectStartDate").value;
+  const projectEnd = document.getElementById("projectEndDate").value;
+
   // 달력 jQuery
   $(".datepicker")
     .datepicker({
       format: "yyyy-mm-dd",
       language: "ko",
       autoclose: true,
+      startDate: projectStart,
+      endDate: projectEnd,
     })
     .on("changeDate", function () {
       document.getElementById("error-workDate").textContent = ""; // 날짜 선택 시 에러 삭제
     });
+  // 근무한 날짜 선택시
+  $("#workDate").on("changeDate", function (event) {
+    // 근무일 선택 : 프로젝트 기간
+    $("#workDate").datepicker("setStartDate", event.date);
+    $("#workDate").datepicker("setEndDate", event.date);
+  });
 
   // 소요시간 등록 폼
   const workForm = document.getElementById("workInsert");

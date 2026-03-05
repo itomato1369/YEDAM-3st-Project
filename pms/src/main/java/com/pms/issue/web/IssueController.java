@@ -44,7 +44,8 @@ public class IssueController {
 											Model model, 
 											IssueSelectDto issueSelectDto, 
 											IssueDto issueDto,
-											@RequestParam(value = "showOnlyMe", required = false) String showOnlyMe) {
+											@RequestParam(value = "showOnlyMe", required = false) String showOnlyMe
+											) {
 		UserEntity user = customUser.getUserEntity();
 		issueSelectDto.setProjectCode(projectCode);
 		
@@ -68,6 +69,8 @@ public class IssueController {
 		List<IssueDto> priorityList = issueService.getPriorityList(issueDto);
 		// 프로젝트 참여중인 멤버 목록
 		List<IssueDto> managerList = issueService.getManagerList(issueDto);
+		// 프로젝트에 등록된 일감 목록
+		List<IssueDto> parentIssueList = issueService.getParentIssueList(issueDto);
 		
 			
 		model.addAttribute("showOnlyMe", showOnlyMe);
@@ -76,9 +79,11 @@ public class IssueController {
 		model.addAttribute("priorityList", priorityList);
 		model.addAttribute("userId", user.getUserId());
 		model.addAttribute("projectCode", projectCode);
-		model.addAttribute("managerList", managerList); 
+		model.addAttribute("managerList", managerList);
+		model.addAttribute("parentIssueList", parentIssueList); 
 		model.addAttribute("project", projectService.findInfoByCode(projectCode));
 		model.addAttribute("issueList", issueList);
+		
 		return "issue/issue-list";
 	}
 
