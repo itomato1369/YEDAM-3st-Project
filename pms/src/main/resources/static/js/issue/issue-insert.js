@@ -2,16 +2,24 @@
 //  html css를 다 로드한 다음에 script문을 실행!
 document.addEventListener("DOMContentLoaded", function () {
   /*	bootstrap-datepicker 플러그인을 적용한다
-                  jQuery만 알아듣는다 해서 씀
-                  class="datepicker"를 가진 input요소를 찾아서
-                  datepicker() method를 실행하겠다
-                  한국어 캘린더 사용을 위해 가져옴
-               */
+      jQuery만 알아듣는다 해서 씀
+      class="datepicker"를 가진 input요소를 찾아서
+      datepicker() method를 실행하겠다
+      한국어 캘린더 사용을 위해 가져옴
+      프로젝트 기간 범위를 벗어나서 선택할 수 없음
+      .value로 값을 가져와야함 이게 없으면
+      html id 값에 대한 태그 전체를 넘기기 때문에 
+      String 인지 Date인지 모른다
+ */
+  const projectStart = document.getElementById("projectStartDate").value;
+  const projectEnd = document.getElementById("projectEndDate").value;
 
   $(".datepicker").datepicker({
     format: "yyyy-mm-dd",
     language: "ko",
     autoclose: true,
+    startDate: projectStart,
+    endDate: projectEnd,
   });
 
   /* $  html태그에서 id가 startDate인 태그 찾아서
@@ -20,19 +28,17 @@ document.addEventListener("DOMContentLoaded", function () {
   */
   // 시작 일자를 선택하면 마감일자는 시작일자 보다 그 앞을 선택할 수 없다
   $("#startDate").on("changeDate", function (event) {
-    // 시작일 선택 -> 마감일의 선택 가능한 날짜 최소화
+    // 시작일 선택 -> 마감일의 시작 점
     // setStartDate : 달력의 시작 지점을 설정 하는 함수
     // event.date startDate의 값
     $("#endDate").datepicker("setStartDate", event.date);
     // 마감일을 먼저 선택 -> 시작일보다 빠르다면 마감일과 시작일이 동일하게 변경
-    const endDateValue = $("#endDate").datepicker("getDate");
-    if (endDateValue && endDateValue < event.date) {
-      $("#endDate").datepicker("update", event.date);
-    }
   });
-  // 마감일이 변경될 때 시작일 범위 제한
+
+  // 마감일을 먼저 선택할 때 시작일은 그 앞으로 갈 수 없다
   $("#endDate").on("changeDate", function (event) {
     // 마감일 먼저 선택 그러면 시작 날짜는 마감일 뒤로 못 간다
+    // setEndDate : 달력의 끝 지점을 설정하는
     $("#startDate").datepicker("setEndDate", event.date);
   });
 

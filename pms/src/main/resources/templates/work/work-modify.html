@@ -6,17 +6,13 @@
 <head>
 <meta charset="UTF-8" />
 <!-- bootstrap-datepicker -->
-<link rel="stylesheet"
-	href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.10.0/css/bootstrap-datepicker.min.css" />
-
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.10.0/css/bootstrap-datepicker.min.css" />
 <!-- 1. jQuery = JavaScript 라이브러리-->
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <!-- 2. bootstrap-datepicker 본체 -->
-<script
-	src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.10.0/js/bootstrap-datepicker.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.10.0/js/bootstrap-datepicker.min.js"></script>
 <!-- 3. 한국어 캘린더-->
-<script
-	src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.10.0/locales/bootstrap-datepicker.ko.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.10.0/locales/bootstrap-datepicker.ko.min.js"></script>
 <title>소요시간 수정</title>
 </head>
 <body>
@@ -59,11 +55,11 @@
 				<div class="col-md-6">
 					<label class="form-label">작업일자</label>
 					<input type="text"
-							   class="form-control datepicker shadow-sm" 
+							   class="form-control datepicker" 
 							   id="workDate" 
 							   name="workDate"
 							   th:value="${#dates.format(workDetails.workDate, 'yyyy-MM-dd')}"
-							   placeholder="실제 근무한 날짜 선택" />
+							   readonly />
 				</div>
 
 				<!-- 근무시간 -->
@@ -72,10 +68,13 @@
 					<input type="number"
 							   class="form-control shadow-sm" 
 							   id="workTime"
-							    name="workTime"
-								th:value="${workDetails.workTime}" 
-								placeholder="숫자만 입력" />
+							   name="workTime"
+							   th:value="${workDetails.workTime}" 
+							   placeholder="숫자만 입력" />
 				</div>
+				<!-- 프로젝트 기간을 벗어날 수 없도록  -->
+				<input type="hidden" id="projectStartDate" th:value="${#dates.format(project.startDate, 'yyyy-MM-dd')}">
+				<input type="hidden" id="projectEndDate" th:value="${#dates.format(project.endDate, 'yyyy-MM-dd')}">
 			</div>
 
 			<div class="mb-3">

@@ -5,7 +5,7 @@
 		id="field-job">
 	<div class="card card-body shadow-sm">
 		<div class="d-flex justify-content-between align-items-center mb-2">
-			<label class="fw-bold small">일감</label>
+			<label class="fw-bold small">일감 제목</label>
 			<!-- x버튼 -->
 			<button type="button" 
 						 class="btn-close btn-remove"
@@ -13,10 +13,12 @@
 		</div>
 		<!-- reportType 을 job으로 보냄 -->
 		<input type="hidden" name="type" value="job" />
-		<input type="text"
-				   name="title" 
-				   class="form-control form-control-sm"
-				   placeholder="일감명을 입력하세요" />
+		<select name="title" class="form-select">
+		<option value="">선택</option>
+		<option th:each="issueList : ${parentIssueList}"
+					th:text="${issueList.title}"></option>
+		
+		</select>
 	</div>
 </div>
 <!-- 사용자 -->
@@ -33,10 +35,12 @@
 		</div>
 			<!-- reportType 을 users로 보냄 -->
 		<input type="hidden" name="type" value="users" /> 
-		<input type="text" 
-				   name="username" 
-				   class="form-control form-control-sm"
-				   placeholder="담당자명을 입력하세요" />
+		<select name="username" class="form-select">
+		<option value="">선택</option>
+		<option th:each="user : ${managerList}"
+					th:text="${user.username}"></option>
+		
+		</select>
 	</div>
 </div>
 <!-- 작업분류별 -->
@@ -52,10 +56,12 @@
 					  	 data-target="field-workType"></button>
 		</div>
 	    <input type="hidden" name="type" value="work" /> 
-		<input type="text" 
-				   name="workType" 
-				   class="form-control form-control-sm"
-				   placeholder="작업분류명을 입력하세요" />
+		<select name="workDetailsNo" class="form-select">
+		<option value="">선택</option>
+		<option th:each="status : ${workTypeList}"
+					th:value="${status.workDetailsNo}"
+					th:text="${status.workType}"></option>
+		</select>
 	</div>
 </div>
 

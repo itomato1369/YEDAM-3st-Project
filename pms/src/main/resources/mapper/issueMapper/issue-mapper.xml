@@ -29,10 +29,10 @@
           AND j.user_id = #{userId}
         </if>
         <if test="title != null">
-          AND j.title LIKE '%' || #{title} || '%'
+          AND j.title = #{title}
         </if>
         <if test="username !=null">
-          AND u.username LIKE '%' || #{username} || '%'
+          AND u.username = #{username}
         </if>
         <if test="jobStatusNo !=null and jobStatusNo != '0' and jobStatusNo !=''">
           AND j.job_status_no = #{jobStatusNo}

@@ -11,7 +11,12 @@
 						 class="btn-close btn-remove"
 						 data-target="field-jobTitle"></button>
 		</div>
-		<input type="text" name="title" class="form-control form-control-sm" placeholder="일감 제목을 입력하세요">
+		<!--  select의 name 속성은 option 태그의 value를 가져오는 key값임 -->
+		<select name="title" class="form-select">
+		<option value="">선택</option>
+		<option th:each="issueList : ${parentIssueList}"
+					th:text="${issueList.title}"></option>
+		</select>
 	</div>
 </div>
 <!-- 일감 담당자 -->
@@ -20,16 +25,17 @@
 		id="field-workers">
 	<div class="card card-body shadow-sm">
 		<div class="d-flex justify-content-between align-items-center mb-2">
-			<label class="fw-bold small">담당자</label>
+			<label class="fw-bold small">담당자 선택</label>
            <!-- x버튼 -->
 			<button type="button" 
 						 class="btn-close btn-remove"
 						data-target="field-workers"></button>
 		</div>
-		<input type="text" 
-				   name="username" 
-				   class="form-control form-control-sm" 
-				   placeholder="담당자명을 입력하세요">
+		<select name="username" class="form-select">
+		<option value="">선택</option>
+		<option th:each="user : ${managerList}"
+					th:text="${user.username}"></option>
+		</select>
 	</div>
 </div>
 <!-- 작업일시 -->
