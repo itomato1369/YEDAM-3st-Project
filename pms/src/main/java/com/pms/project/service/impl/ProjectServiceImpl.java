@@ -467,7 +467,12 @@ public class ProjectServiceImpl implements ProjectService {
                     .collect(Collectors.toList());
             }
             
+            Set<String> validIds = list.stream().map(GanttDTO::getId).collect(Collectors.toSet());
+            
             list.forEach(dto -> {
+            	if (dto.getParent() != null && !dto.getParent().equals("0") && !validIds.contains(dto.getParent())) {
+                    dto.setParent("0"); // dhtmlxGantt가 최상위 노드로 인식하도록 "0" 주입
+                }
                 // ★ raw 데이터가 존재할 때 WAS에서 변환 수행
                 if (dto.getRawStartDate() != null && dto.getRawEndDate() != null) {
                     LocalDate start = convertToLocalDate(dto.getRawStartDate());
