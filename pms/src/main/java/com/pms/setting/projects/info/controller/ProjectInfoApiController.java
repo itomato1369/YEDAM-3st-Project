@@ -27,7 +27,7 @@ public class ProjectInfoApiController {
 	private final ProjectInfoService projectInfoService;
 
 	/**
-	 * 📍 1. 프로젝트 기본 정보 수정 (PATCH) URL: /settings/api/projects/{projectNo}
+	 *  1. 프로젝트 기본 정보 수정 (PATCH) URL: /settings/api/projects/{projectNo}
 	 */
 	@PatchMapping("/{projectNo}")
 	public ResponseEntity<String> updateProject(@PathVariable Long projectNo,
@@ -37,7 +37,7 @@ public class ProjectInfoApiController {
 	}
 
 	/**
-	 * 📍 2. 프로젝트에 그룹 추가 (POST) URL: /settings/api/projects/{projectNo}/groups
+	 *  2. 프로젝트에 그룹 추가 (POST) URL: /settings/api/projects/{projectNo}/groups
 	 */
 	@PostMapping("/{projectNo}/groups")
 	public ResponseEntity<String> addGroupToProject(@PathVariable Long projectNo,
@@ -47,7 +47,7 @@ public class ProjectInfoApiController {
 	}
 
 	/**
-	 * 📍 3. 프로젝트에서 그룹 제외 (DELETE) URL:
+	 *  3. 프로젝트에서 그룹 제외 (DELETE) URL:
 	 * /settings/api/projects/{projectNo}/groups/{groupNo}
 	 */
 	@DeleteMapping("/{projectNo}/groups/{groupNo}")
@@ -57,9 +57,9 @@ public class ProjectInfoApiController {
 	}
 
 	/**
-	 * 📍 4. 프로젝트에 추가 가능한 전체 그룹 목록 조회 (역할명 포함) URL: /settings/api/groups
+	 *  4. 프로젝트에 추가 가능한 전체 그룹 목록 조회 (역할명 포함) URL: /settings/api/groups
 	 */
-	@GetMapping("/groups") // 👈 이렇게 절대 경로를 다 적어주면 안전합니다!
+	@GetMapping("/groups")
 	public ResponseEntity<List<GroupListDTO>> getAvailableGroups() {
 		List<GroupListDTO> groups = projectInfoService.getAvailableGroupsForModal();
 		return ResponseEntity.ok(groups);

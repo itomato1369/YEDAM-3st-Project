@@ -282,6 +282,26 @@
             const dd   = String(date.getDate()).padStart(2, '0');
             return holidaySet.has(`${yyyy}-${mm}-${dd}`);
         };
+        
+        gantt.attachEvent("onTaskCreated", function(task) {
+            let tempParentId = task.parent;
+            
+            // 일감이 속한 진짜 프로젝트(p)를 찾을 때까지 계속 위로 타고 올라감
+            while (tempParentId && tempParentId !== "0") {
+                const parentNode = gantt.getTask(tempParentId);
+                
+                if (String(parentNode.id).startsWith("p")) {
+                    // 속해있는 프로젝트를 찾았는데, 그 프로젝트가 하위 프로젝트라면
+                    if (parentNode.parent && parentNode.parent !== "0") {
+                        gantt.message({text: "하위 프로젝트 내에서는 새로운 일감을 추가할 수 없습니다.", type: "info"});
+                        return false; // false를 반환하여 화면에 Bar가 생기는 것을 즉시 취소
+                    }
+                    break; // 프로젝트 레벨에 도달했으므로 탐색 종료
+                }
+                tempParentId = parentNode.parent; // 다음 부모로 이동
+            }
+            return true; // 최상위 프로젝트 소속이라면 정상적으로 생성 허용
+        });
 
         // 헤더 '추가' 클릭 시 더미 task 생성 방지
         gantt.attachEvent("onGridHeaderClick", function(name) {
@@ -299,6 +319,22 @@
         gantt.attachEvent("onBeforeLightbox", function(id) {
             currentTaskInfo = gantt.getTask(id);
 
+			let tempParentId = currentTaskInfo.parent;
+            
+            // 일감의 최상위 부모(프로젝트 'p')를 찾을 때까지 거슬러 올라감
+            while (tempParentId && tempParentId !== "0") {
+                const parentNode = gantt.getTask(tempParentId);
+                
+                if (String(parentNode.id).startsWith("p")) {
+                    // 속해있는 프로젝트를 찾았는데, 그 프로젝트의 부모가 또 있다면(= 하위 프로젝트라면)
+                    if (parentNode.parent && parentNode.parent !== "0") {
+                        currentTaskInfo.editLocked = true; // 권한 무시하고 무조건 잠금
+                    }
+                    break; // 프로젝트 레벨에 도달했으므로 탐색 종료
+                }
+                tempParentId = parentNode.parent;
+            }
+            
             if (!ganttIssueModal) {
                 ganttIssueModal = new bootstrap.Modal(document.getElementById('ganttCustomModal'));
             }

@@ -1,0 +1,79 @@
+Yedam_PMS
+pms 
+└─src
+    └─main
+        ├─java
+        │   └─com
+        │        └─pms 
+        │             ├─issue   
+        │             │   ├─mapper
+        │             │   │   └─IssueMapper.java　（SELECT文のみ作業しました。）
+        │             │   ├─service
+        │             │   │   └─IssueService.java　（照会機能のみ作業しました。）
+        │             │   └─web
+        │             │        ├─IssueSelectDto.java
+        │             │        └─IssueController.java (GetMappingのみ作業しました。)
+        │             │ 
+        │             └─work
+        │                  ├─dto 
+        │                  │   ├─WorkInsertDto.java
+        │                  │   ├─WorkUpdateDto.java
+        │                  │   ├─WorkReportDto.java
+        │                  │   └─WorkSelectDto.java
+        │                  ├─mapper
+        │                  │   └─WorkMapper.java
+        │                  ├─service
+        │                  │   ├─WorkService.java
+        │                  │   └─Impl
+        │                  │        └─WorkServiceImpl.java
+        │                  └─controller
+ 　     │                            └─WorkController.java                        
+        └─resources
+               ├─mapper
+               │     ├─issueMapper
+               │     │   └─issue-mapper.xml （SELECT文のみ作業しました。）
+               │     └─work 
+    　　   　　│　　　　  └─work-mapper.xml　　　
+               ├─static
+               │     └─js
+               │        ├─issue
+               │        │    ├─dynamicSearch.js
+               │        │    ├─issue-insert.js
+               │        │    ├─issue-select-modal.js
+               │        │    ├─issue-submit-modal.js
+               │        │    ├─issue-update.js
+               │        │    └─user-select-modal.js 
+               │        └─work
+               │              ├─dynamicSearch.js
+               │              ├─workInsert.js 
+               │              └─workModify.js
+               └─templates
+                        ├─common
+                        │     └─fragments
+                        │            ├─issue
+                        │            │    ├─dynamic-issue-list-search.html
+                        │            │    ├─issue-select-modal.html
+                        │            │    ├─issue-submit-modal.html
+                        │            │    ├─issue-update-modal.html
+                        │            │    └─user-select-modal.html
+                        │            │
+                        │            └─work  
+                        │                  ├─dynamic-work-list-search.html
+                        │                  ├─dynamic-work-report-search.html
+                        │                  ├─work-modify-modal.html
+                        │                  └─work-submit-modal.html
+                        │                          
+                        │  
+                        │ 
+                        ├─issue
+                        │     ├─issue-info.html
+                        │     ├─issue-insert.html
+                        │     ├─issue-list.html
+                        │     └─issue-modify.html
+                        │
+                        │
+                        └─work
+                               ├─work-add.html
+                               ├─work-list.html
+                               ├─work-modify.html
+                               └─work-report.html
