@@ -26,6 +26,11 @@ public class ProjectSecurityService {
 			return true;
 		}
 
+		if ("ADMIN".equals(menu.getType())) {
+			System.out.println(menu.getType());
+			return false;
+		}
+
 		Integer menuId = menu.getMenuId();
 		String value = null;
 		if (menu.getUrlData().contains("{projectCode}")) {

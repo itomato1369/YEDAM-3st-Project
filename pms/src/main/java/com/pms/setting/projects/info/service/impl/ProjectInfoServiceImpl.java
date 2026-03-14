@@ -50,7 +50,7 @@ public class ProjectInfoServiceImpl implements ProjectInfoService {
         dto.setStartDate(project.getStartDate());
         dto.setEndDate(project.getEndDate());
 
-        // 📍 모달용 데이터를 미리 가져와서 매핑에 활용 (엔티티 연관관계 에러 회피)
+        // 모달용 데이터를 미리 가져와서 매핑에 활용 (엔티티 연관관계 에러 회피)
         List<GroupListDTO> allGroups = getAvailableGroupsForModal();
 
         dto.setGroups(project.getProjectGroups().stream().map(gp -> {

@@ -49,7 +49,6 @@ public class FilesDeleteService {
         }
 
 		// DB 삭제
-        System.out.println("[detailsNo]: " + detailsNo);
 		filesDetailsRepository.deleteById(detailsNo);
 		filesDetailsRepository.flush();
 
