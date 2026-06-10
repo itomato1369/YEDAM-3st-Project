@@ -54,7 +54,7 @@
 
 ---
 
-## 🎬 実演動画
+## 🎬 デモ動画
 
 **YouTubeリンク:** [ProjectFlow](https://youtu.be/LfKW6Law_SE)
 
