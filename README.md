@@ -30,13 +30,13 @@
 
 ## 📊 ERD図
 
-![ERD図](PMS_ERD.png)
+![ERD図](docs/PMS_ERD.png)
 > 総テーブル数：22個
 ---
 
 ## 🗺️ サイト構成図
 
-![サイト構成図](web-flow.png)
+![サイト構成図](docs/web-flow.png)
 
 ---
 
@@ -61,6 +61,6 @@
 ---
 
 ## 📁 担当機能のディレクトリ
-![担当機能のディレクトリ](my_directory1.png)
-![担当機能のディレクトリ](my_directory2.png)
-![担当機能のディレクトリ](my_directory3.png)
+![担当機能のディレクトリ](docs/my_directory1.png)
+![担当機能のディレクトリ](docs/my_directory2.png)
+![担当機能のディレクトリ](docs/my_directory3.png)
